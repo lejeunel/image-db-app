@@ -4,64 +4,50 @@ from app.models import TimePoint
 
 existing = {
     "name": "first plate",
-    "timepoints": [{"uri": 'scheme://store/exp1/tp1/'}],
+    "timepoints": [{"uri": 'scheme://project/exp1/tp1/'}],
 }
 
 new = {
     "name": "new plate",
-    "timepoints": [{"uri": 'scheme://store/exp3/tp1/'}],
+    "timepoints": [{"uri": 'scheme://project/exp3/tp1/'}],
 }
 
 
 def test_delete(client):
-    plate_id = client.get("/api/plate/").json[0]["id"]
-    res = client.delete(f"/api/plate/{plate_id}")
+    plate_id = client.get("plate/").json[0]["id"]
+    res = client.delete(f"plate/{plate_id}")
 
-    plates = client.get("/api/plate/").json
-    items = client.get("/api/items/").json
+    plates = client.get("plate/").json
+    items = client.get("items/").json
 
     assert len(plates) == len(items) == 0
 
 
 def test_create_new_plate(client):
-    breakpoint()
-    res = client.post("/api/plate/", json=new)
+    res = client.post("plate/", json=new)
     assert res.status_code == 201
 
 
 def test_create_duplicate_timepoint(client):
 
-    store = DummyStore()
-    plates = client.get("/api/plate/").json
-
-    new = plates[0]
-    new["name"] = "third plate"
-    timepoint = {'uri': new['timepoints'][0]['uri']}
-    new["timepoints"] = [timepoint]
-    new.pop('id')
-    res = client.post("/api/plate/", json=new)
+    data = dict(existing)
+    data['name'] = 'new name'
+    res = client.post("plate/", json=data)
     assert res.status_code == 424
 
-def test_create_duplicate_name(client):
+def test_create_duplicate_plate(client):
 
     new = dict(existing)
 
-    res = client.post("/api/plate/", json=new)
+    res = client.post("plate/", json=new)
     assert res.status_code == 424
 
 
 def test_update(client):
-    new = dict(existing)
-    new["name"] = "third plate"
-    new["timepoints"][0]["uri"] = str(store.buckets[2]) + "/" + "TimePoint3"
-    res = client.post("/api/plate/", json=new)
-
-    updated_plate = dict(new)
-    updated_plate["name"] = "updated name"
-    res = client.put(
-        "/api/plate/{}".format(res.json["id"]),
-        json={"name": "updated_name"},
-    )
+    data = dict(existing)
+    data["name"] = "new name"
+    id = client.get('plate/').json[0]['id']
+    res = client.put(f"plate/{id}", json=data)
 
     assert res.status_code == 200
-    assert res.json["name"] == "updated_name"
+    assert res.json["name"] == "new name"

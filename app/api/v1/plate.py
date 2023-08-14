@@ -31,56 +31,9 @@ class PlateAPI(MethodView):
     @admin_required
     @blp.arguments(PlateSchema)
     @blp.response(200, PlateSchema)
-    def put(self, update_data, id):
+    def put(self, data, id):
         """Update plate"""
-        res = PlateAPI._update(id, update_data)
-
-        return res
-
-    @admin_required
-    @blp.response(204, PlateSchema)
-    def delete(self, id):
-        """Delete plate"""
-
-        res = PlateAPI._delete(id)
-
-    @admin_required
-    @blp.arguments(PlateSchema)
-    @blp.response(200, PlateSchema)
-    def patch(self, update_data, id):
-        """Patch plate"""
-        res = PlateAPI._update(id, update_data)
-
-        return res
-
-    @staticmethod
-    def _create(data):
-        check_duplicate(db.session, Plate, name=data["name"])
-
-        for timepoint in data["timepoints"]:
-            check_duplicate(db.session, TimePoint, uri=timepoint["uri"])
-
-        timepoints = data.pop("timepoints")
-
-        plate = Plate(**data)
-        db.session.add(plate)
-        db.session.commit()
-
-        for timepoint in timepoints:
-            tp = TimePoint(**timepoint, plate_id=plate.id)
-            db.session.add(tp)
-            db.session.commit()
-
-            items = loader(timepoint["uri"])
-            items = [Item(**item, plate_id=plate.id, timepoint_id=tp.id,
-                          ) for item in items]
-            db.session.add_all(items)
-            db.session.commit()
-
-        return plate
-
-    @staticmethod
-    def _update(id, data):
+        data.pop('timepoints', None)
         res = record_exists(Plate, id)
 
         q = Plate.query.filter_by(id=id)
@@ -89,9 +42,10 @@ class PlateAPI(MethodView):
 
         return q.first()
 
-    @staticmethod
-    def _delete(id):
-        """Delete plate and all associated objects."""
+    @admin_required
+    @blp.response(204)
+    def delete(self, id):
+        """Delete plate"""
 
         res = record_exists(Plate, id)
 
@@ -112,6 +66,16 @@ class PlateAPI(MethodView):
 
         db.session.commit()
 
+    @admin_required
+    @blp.arguments(PlateSchema)
+    @blp.response(200, PlateSchema)
+    def patch(self, update_data, id):
+        """Patch plate"""
+        res = PlateAPI._update(id, update_data)
+
+        return res
+
+
 
 @blp.route("/")
 class PlatesAPI(MethodView):
@@ -125,9 +89,24 @@ class PlatesAPI(MethodView):
     @admin_required
     @blp.arguments(PlateSchema)
     @blp.response(201, PlateSchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new plate"""
 
-        res = PlateAPI._create(new_data)
+        check_duplicate(db.session, Plate, name=data["name"])
 
-        return res
+        for timepoint in data["timepoints"]:
+            check_duplicate(db.session, TimePoint, uri=timepoint["uri"])
+
+        timepoints = data.pop('timepoints')
+        timepoints = [TimePoint(**t) for t in timepoints]
+
+        plate = Plate(**data)
+
+        db.session.add_all(timepoints)
+        db.session.add(plate)
+        db.session.commit()
+
+        loader(plate, timepoints)
+
+
+        return plate

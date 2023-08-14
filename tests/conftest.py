@@ -10,6 +10,10 @@ from flask import Flask
 
 
 class TestReader(BaseReader):
+    """
+    Dummy parser
+    """
+
     def __init__(self):
         self.items = [
             "scheme://project/"
@@ -26,6 +30,9 @@ class TestReader(BaseReader):
         ]
 
     def __call__(self, uri):
+        """
+        Return all times at uri
+        """
         scheme = urlparse(uri).scheme
         if scheme != "scheme":
             raise ReaderException(
@@ -92,13 +99,13 @@ def populate_db(app):
     )
 
     modalities = [
-        {"name": n, "target": t, "comment": ""}
+        Modality(name=n, target=t)
         for n, t in zip(
             [f"modality_{m}" for m in range(4)],
             [f"modality_target_{t}" for t in range(4)],
         )
     ]
-    db.session.add_all([Modality(**m) for m in modalities])
+    db.session.add_all(modalities)
 
     compounds = [
         Compound(**{"name": f"compound_{c}", "target": f"compound_target_{t}"})

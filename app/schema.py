@@ -2,7 +2,7 @@
 import marshmallow as ma
 from app.utils import record_exists
 from .config import default as cfg
-from .models import Stack, Cell, Compound
+from .models import Stack, Cell, Compound, Plate, TimePoint
 
 class ItemsSchema(ma.Schema):
 
@@ -53,6 +53,13 @@ class PlateSchema(ma.Schema):
                                     load_default=cfg.CAPTURE_REGEXP_DICT)
     ignore_regexp = ma.fields.String(load_default=cfg.IGNORE_REGEXP)
     valid_regexp = ma.fields.String(load_default=cfg.VALID_REGEXP)
+
+    @ma.post_dump()
+    def append_timepoints(self, data, **kwargs):
+        timepoints = TimePoint.query.filter(Plate.id == data['id'])
+        timepoints = TimePointSchema(many=True).dump(timepoints)
+        data['timepoints'] = timepoints
+        return data
 
 
 class CellSchema(ma.Schema):
