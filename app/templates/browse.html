@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<h1>{{ title }} </h1>
+  <div class="container">
+    <div class="row">
+      <div class="col-10">
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% for c, cl in crumbs|zip(crumbs_links) %}
+                    {% if loop.last %}
+                        <li class="breadcrumb-item active" aria-current="page">{{ c | safe }}</li>
+                    {% else %}
+                        <li class="breadcrumb-item"><a href={{ cl }}>{{ c | safe }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+      </div>
+      {% if full_path|length %}
+        <div class="col-2">
+          <button class="btn btn-secondary" id='btn-copy' data-clipboard-text="{{ full_path }}">Copy Path</button>
+        </div>
+      {% endif %}
+    </div>
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dname, dlink in dir_names|zip(dir_links) %}
+          <tr>
+            <td><a href="{{ dlink  }}">{{ dname  }}</a></td>
+            </td>
+          </tr>
+          {% endfor %}
+          {% for fname in file_names %}
+          <tr>
+            <td>{{ fname }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+{% endblock %}

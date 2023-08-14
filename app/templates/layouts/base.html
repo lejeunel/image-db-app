@@ -1,0 +1,40 @@
+<html lang="en">
+  <head>
+      <link type="text/css" href="/static/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+      <link type="text/css" href="/static/assets/vendor/@fortawesome/fontawesome-free/css/fontawesome.min.css" rel="stylesheet">
+      <link rel="stylesheet" href="{{ url_for('index.pygments_css') }}">
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
+        {% block head %}
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+        {% endblock %}
+      {% endblock %}
+</head>
+<body>
+  <title>{% block title %}{% endblock %}</title>
+
+  {% include 'includes/navigation.html' %}
+
+  <div class='container-lg mt-5 mb-5 ml-5 mr-5'>
+    <div>
+      {% block content %}{% endblock content %}
+    </div>
+  </div>
+
+    {{ bootstrap.load_js() }}
+    <script type="text/javascript">
+        new ClipboardJS('#btn-copy');
+    </script>
+
+
+  {% block scripts %}
+  {% endblock %}
+
+
+</body>
+</html>

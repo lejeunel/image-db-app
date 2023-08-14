@@ -1,0 +1,30 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Image Preview {% endblock %}
+
+{% block content %}
+<h1>Image Preview</h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      {{ table | safe }}
+    </div>
+    <div class="col">
+      <div id="image" class="image"></div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/javascript">
+    var graphs = {{graphJSON | safe}};
+    Plotly.plot('image',graphs,{});        
+</script>
+
+{% endblock %}

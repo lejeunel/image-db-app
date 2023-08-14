@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+
+import marshmallow as ma
+from flask.views import MethodView
+from flask_smorest import Blueprint
+
+from ... import db
+from ...models import Modality
+from . import (
+    admin_required,
+    check_dependencies,
+    check_duplicate,
+)
+from app.utils import record_exists
+
+blp = Blueprint(
+    "Modality",
+    "Modality",
+    url_prefix="/api/v1/modality",
+    description="Item modality",
+)
+
+
+class ModalitySchema(ma.Schema):
+    class Meta:
+        ordered = True
+
+    id = ma.fields.UUID(dump_only=True)
+    name = ma.fields.String()
+    target = ma.fields.String()
+    comment = ma.fields.String()
+
+
+@blp.route("/<uuid:id>")
+class ModalityAPI(MethodView):
+    model = Modality
+
+    @blp.response(200, ModalitySchema)
+    def get(self, id):
+        """Get modality"""
+
+        res = record_exists(self.model, id).first()
+        return res
+
+    @admin_required
+    @blp.arguments(ModalitySchema)
+    @blp.response(200, ModalitySchema)
+    def put(self, update_data, id):
+        """Update modality"""
+
+        res = ModalityAPI._update(id, update_data)
+
+        return res
+
+    @admin_required
+    @blp.arguments(ModalitySchema)
+    @blp.response(200, ModalitySchema)
+    def patch(self, update_data, id):
+        """Patch modality"""
+        res = ModalityAPI._update(id, update_data)
+
+        return res
+
+    @admin_required
+    @blp.response(204)
+    def delete(self, id):
+        """Delete modality"""
+
+        res = ModalityAPI._delete(id)
+
+    @staticmethod
+    def _create(data):
+
+        check_duplicate(db.session, Modality, name=data["name"])
+
+        modality = Modality(**data)
+        db.session.add(modality)
+        db.session.commit()
+        return modality
+
+    @staticmethod
+    def _update(id, data):
+
+        item = record_exists(Modality, id)
+
+        item.update(data)
+        db.session.commit()
+        return item.first()
+
+    @staticmethod
+    def _delete(id):
+
+        res = record_exists(Modality, id)
+
+        check_dependencies(Modality, value=id, field="id", remote="stacks")
+
+        db.session.delete(res.first())
+        db.session.commit()
+
+
+@blp.route("/")
+class ModalitiesAPI(MethodView):
+    @blp.response(200, ModalitySchema(many=True))
+    def get(self):
+        """Get all modalities"""
+        item = Modality.query.all()
+        return item
+
+    @admin_required
+    @blp.arguments(ModalitySchema)
+    @blp.response(201, ModalitySchema)
+    def post(self, new_data):
+        """Add a new modality"""
+        res = ModalityAPI._create(new_data)
+
+        return res

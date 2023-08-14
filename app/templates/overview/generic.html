@@ -1,0 +1,59 @@
+{% extends "layouts/base.html" %}
+{% from 'bootstrap5/pagination.html' import render_pagination, render_pager %}
+
+{% block title %}{{ fullname }} overview{% endblock %}
+
+{% block content %}
+<div>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            {% if category == 'message' %}
+              <div class="alert alert-warning" role="alert">
+            {% else %}
+            <ul>
+              {% for m in message%}
+              <div class="alert alert-{{ category }}" role="alert">
+                {{ m }}
+                {% endfor %}
+              </div>
+            {% endif %}
+            </ul>
+        {% endfor %}
+      {% endif %}
+  {% endwith %}
+</div>
+<div class='container'>
+
+    <h1> {{ fullname }} Overview</h1>
+
+    {{ render_pagination(pagination) }}
+
+        <div class='row'>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        {% for c in columns %}
+                            <th>{{ c }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in data %}
+                        <tr>
+                            {% for c in columns %}
+                                {% if 'name' in c %}
+                                    <td><a href='/{{ typename }}/detail/{{ d.id }}'>{{ d[c] }}</i></a></td>
+                                {% else %}
+                                    <td>{{ d[c] }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{ render_pagination(pagination) }}
+</div>
+{% endblock %}

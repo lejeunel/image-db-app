@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+{% from 'bootstrap5/pagination.html' import render_pagination, render_pager %}
+
+{% block title %}{{ typename }} / {{ name }} {% endblock %}
+
+{% block content %}
+<h1>{{ typename }} / {{ name }}</h1>
+
+{{ table | safe }}
+
+
+<h1>Images</h1>
+{{ render_pagination(pagination) }}
+  <div class='container-lg mt-5 mb-5 ml-5 mr-5'>
+        <div class='row'>
+            <table class="table table-hover">
+            <thead>
+                <tr>
+                  {% for c in images_col_names %}
+                    <th>{{ c }}</th>
+                  {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+            {% for im in images %}
+            <tr>
+              {% for c in images_col_names %}
+                {% if c == 'key'%}
+                    <td><a href="/image/{{ im['id'] }}">{{ im[c] }}</i></a></td>
+                {% else %}
+                    <td>{{ im[c] }}</td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ render_pagination(pagination) }}
+
+{% endblock %}
