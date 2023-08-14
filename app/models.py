@@ -83,7 +83,7 @@ class Item(Object):
 
 class Stack(Object):
     """
-    This allows to group different modalities so as to form a "stack", a.k.a "Dye Kit"
+    This allows to group different modalities
     """
 
     __tablename__ = "stack"
@@ -237,7 +237,7 @@ class Plate(Object):
 class TimePoint(Object):
     __tablename__ = "timepoint"
     id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
-    time = db.Column(db.DateTime())
+    time = db.Column(db.DateTime(timezone=True), server_default=func.now())
     uri = db.Column(db.String(300))
     plate_id = db.Column(db.ForeignKey("plate.id"))
     plate = db.relationship(

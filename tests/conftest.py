@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
-import json
 
 from urllib.parse import urlparse
 import pytest
-from app import create_app
+from app.models import ItemTagAssociation
 from app.reader.base import BaseReader
 from app.reader import ReaderException
 from flask import testing
-from werkzeug.datastructures import Headers
-from datetime import datetime
-from copy import copy
-from urllib.parse import urlencode
 from flask import Flask
 
 
@@ -45,9 +40,10 @@ class TestReader(BaseReader):
 
         return [item for item in self.items if uri in item]
 
+
 class CustomClient(testing.FlaskClient):
     def open(self, *args, **kwargs):
-        args = ('/api/v1/' + args[0],)
+        args = ("/api/v1/" + args[0],)
         return super().open(*args, **kwargs)
 
 
@@ -63,7 +59,7 @@ def app():
         db.create_all()
         restapi.init_app(app)
         register_blueprints(restapi)
-        loader.init_app(app, TestReader())
+        loader.init_app(app, db, TestReader())
         app.test_client_class = CustomClient
 
         yield app
@@ -80,7 +76,21 @@ def client(app):
 
 
 @pytest.fixture(autouse=True)
-def populate_db(app, client):
+def populate_db(app):
+    from app import db, loader
+    from app.models import (
+        Modality,
+        Plate,
+        Section,
+        Tag,
+        Cell,
+        Compound,
+        Stack,
+        Item,
+        TimePoint,
+        StackModalityAssociation,
+    )
+
     modalities = [
         {"name": n, "target": t, "comment": ""}
         for n, t in zip(
@@ -88,106 +98,87 @@ def populate_db(app, client):
             [f"modality_target_{t}" for t in range(4)],
         )
     ]
-    for d in modalities:
-        res = client.post("modality/", json=d)
+    db.session.add_all([Modality(**m) for m in modalities])
 
     compounds = [
-        {"name": f"compound_{c}", "target": f"compound_target_{t}"}
+        Compound(**{"name": f"compound_{c}", "target": f"compound_target_{t}"})
         for c, t in zip(range(4), range(4))
     ]
-    for c in compounds:
-        res = client.post("/api/v1/compound/", json=c)
+    db.session.add_all(compounds)
 
-    cells = [
-        {"name": f"cell_{n}", "code": f"cell_{c}"} for n, c in zip(range(4), range(4))
+    cell = Cell(name="cell_0", code="cell_code_0")
+    db.session.add(cell)
+
+    tags = [Tag(name=f"tag_{t}") for t in range(4)]
+    db.session.add_all(tags)
+
+    stack = {"name": "stack_0"}
+    db.session.add(Stack(**stack))
+    db.session.commit()
+    stack = db.session.query(Stack).first()
+    modalities = db.session.query(Modality).all()[:3]
+    assocs = [
+        StackModalityAssociation(stack_id=stack.id, modality_id=m.id)
+        for m in modalities
     ]
-    for c in cells:
-        res = client.post("/api/v1/cell/", json=c)
+    db.session.add_all(assocs)
 
-    tags = [{"name": f"tag_{t}"} for t in range(4)]
-    for t in tags:
-        res = client.post("/api/v1/tag/", json=t)
+    plate = Plate(
+        name="first plate",
+        capture_regexp=app.config["CAPTURE_REGEXP_DICT"],
+        ignore_regexp=app.config["IGNORE_REGEXP"],
+        valid_regexp=app.config["VALID_REGEXP"],
+    )
+    db.session.add(plate)
+    db.session.commit()
 
-    stacks = [
-        {
-            "name": f"stack_{s}",
-            "modalities": [m for m in modalities],
-            "regexps": ["%w1%", "%w2%", "%w3%"],
-        }
-        for s, modalities in zip(
-            range(2),
-            [
-                ["modality_1", "modality_2", "modality_3"],
-                ["modality_1", "modality_2", "modality_4"],
-            ],
-        )
+    timepoints = [
+        TimePoint(uri="scheme://project/exp1/tp1/", plate_id=plate.id),
+        TimePoint(uri="scheme://project/exp1/tp2/", plate_id=plate.id),
     ]
-    for s in stacks:
-        res = client.post("/api/v1/stack/", json=s)
+    db.session.add_all(timepoints)
+    db.session.commit()
 
-    times = ["2011-11-04T00:05:23", "2011-11-05T00:05:23"]
-    plates = [
-        {
-            "name": "first plate",
-            "timepoints": [
-                {
-                    "uri": "scheme://project/exp1/tp1/",
-                    "time": times[0],
-                },
-                {
-                    "uri": "scheme://project/exp1/tp2/",
-                    "time": times[1],
-                },
-            ],
-        },
+    loader(plate, timepoints)
+
+    base_section = {"cell_id": cell.id, "stack_id": stack.id, "plate_id": plate.id}
+    sections = [
+        Section(
+            **{
+                **base_section,
+                "col_start": 1,
+                "col_end": 9,
+                "row_start": "A",
+                "row_end": "B",
+                "compound_id": compounds[0].id,
+                "compound_concentration": 0.0,
+            }
+        ),
+        Section(
+            **{
+                **base_section,
+                "col_start": 10,
+                "col_end": 12,
+                "row_start": "A",
+                "row_end": "B",
+                "compound_id": compounds[1].id,
+                "compound_concentration": 1.0,
+            }
+        ),
     ]
-    for p in plates:
-        res = client.post("/api/v1/plate/", json=p)
 
-    plate_id = client.get("/api/v1/plate/").json[0]["id"]
+    db.session.add_all(sections)
+    db.session.commit()
 
-    sections = []
-    for p in plates:
-        res = client.post("/api/v1/plate/", json=p)
+    # associate tags
+    assocs = [
+        ItemTagAssociation(item_id=item.id, tag_id=tags[0].id)
+        for item in timepoints[0].items
+    ]
+    assocs += [
+        ItemTagAssociation(item_id=item.id, tag_id=tags[1].id)
+        for item in timepoints[1].items
+    ]
 
-    sections = []
-
-    new_section = {
-        "col_start": 1,
-        "col_end": 9,
-        "row_start": "A",
-        "row_end": "B",
-        "cell_code": "cell_0",
-        "stack_name": "stack_0",
-        "compound_name": "compound_0",
-        "compound_concentration": 0.0,
-    }
-    sections.append(new_section)
-    new_section = copy(new_section)
-    new_section = {
-        "col_start": 10,
-        "col_end": 12,
-        "row_start": "A",
-        "row_end": "B",
-        "cell_code": "cell_0",
-        "stack_name": "stack_0",
-        "compound_name": "compound_0",
-        "compound_concentration": 1.0,
-    }
-    sections.append(new_section)
-
-    res = client.post(f"/api/v1/plate/{plate_id}/sections/", json=sections[0])
-
-    tp_ids = [tp["id"] for tp in client.get("/api/v1/plate/").json[0]["timepoints"]]
-
-    params = urlencode({"section_id": res.json["id"], "timepoint_id": tp_ids[0]})
-    url = "/api/v1/items/tag/{}?{}".format("tag_1", params)
-    res = client.post(url)
-
-    res = client.post(f"/api/v1/plate/{plate_id}/sections/", json=sections[1])
-
-    params = urlencode({"section_id": res.json["id"], "timepoint_id": tp_ids[1]})
-    url = "/api/v1/items/tag/{}?{}".format("tag_2", params)
-    res = client.post(url)
-    url = "/api/v1/items/tag/{}?{}".format("tag_3", params)
-    res = client.post(url)
+    db.session.add_all(assocs)
+    db.session.commit()
