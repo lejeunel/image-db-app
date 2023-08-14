@@ -54,7 +54,6 @@ def get_items_with_meta():
     from ... import db
 
     # aggregate tags (sqlite and postgre)
-    breakpoint()
     if "sqlite" in db.engine.url:
         my_string_agg_fn = func.group_concat(Tag.name, ",").label('tags')
     elif "postgre" in db.engine.url:

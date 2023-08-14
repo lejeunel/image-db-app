@@ -14,26 +14,15 @@ from urllib.parse import urlencode
 from flask import Flask
 
 
-class TestClient(testing.FlaskClient):
-    """
-    Testing client with appropriate entitlement.
-    This will make all authorizations pass.
-    """
-
-    def open(self, *args, **kwargs):
-        entitlement_headers = Headers(
-            {"user-profile": json.dumps({"entitlements": {"my-project": ["admin"]}})}
-        )
-        headers = kwargs.pop("headers", Headers())
-        headers.extend(entitlement_headers)
-        kwargs["headers"] = headers
-        return super().open(*args, **kwargs)
-
-
 class TestReader(BaseReader):
     def __init__(self):
         self.items = [
-            "scheme://project/" + exp + "/" + tp + "/" + f"file_{row}{col:02d}_w{chan}.tiff"
+            "scheme://project/"
+            + exp
+            + "/"
+            + tp
+            + "/"
+            + f"file_{row}{col:02d}_w{chan}.tiff"
             for exp in ["exp1", "exp2", "exp3"]
             for tp in ["tp1", "tp2"]
             for row in ["A", "B", "C"]
@@ -56,6 +45,11 @@ class TestReader(BaseReader):
 
         return [item for item in self.items if uri in item]
 
+class CustomClient(testing.FlaskClient):
+    def open(self, *args, **kwargs):
+        args = ('/api/v1/' + args[0],)
+        return super().open(*args, **kwargs)
+
 
 @pytest.fixture()
 def app():
@@ -70,6 +64,7 @@ def app():
         restapi.init_app(app)
         register_blueprints(restapi)
         loader.init_app(app, TestReader())
+        app.test_client_class = CustomClient
 
         yield app
 
@@ -94,7 +89,7 @@ def populate_db(app, client):
         )
     ]
     for d in modalities:
-        res = client.post("/api/v1/modality/", json=d)
+        res = client.post("modality/", json=d)
 
     compounds = [
         {"name": f"compound_{c}", "target": f"compound_target_{t}"}
@@ -189,7 +184,7 @@ def populate_db(app, client):
     url = "/api/v1/items/tag/{}?{}".format("tag_1", params)
     res = client.post(url)
 
-    res = client.post(f"/api/v1/plate/{plate_id}/sections", json=sections[1])
+    res = client.post(f"/api/v1/plate/{plate_id}/sections/", json=sections[1])
 
     params = urlencode({"section_id": res.json["id"], "timepoint_id": tp_ids[1]})
     url = "/api/v1/items/tag/{}?{}".format("tag_2", params)

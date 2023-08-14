@@ -24,6 +24,7 @@ def test_delete(client):
 
 
 def test_create_new_plate(client):
+    breakpoint()
     res = client.post("/api/plate/", json=new)
     assert res.status_code == 201
 
