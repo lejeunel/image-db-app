@@ -12,15 +12,8 @@ import uuid
 __all__ = ["cell", "compound", "tag", "section", "plate", "modality", "stack"]
 
 
-class Object(db.Model):
-    __tablename__ = "object"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
-    project = db.Column(db.String(100))
-    object_type = db.Column(db.String(32), nullable=False)
-    __mapper_args__ = {"polymorphic_on": object_type}
 
-
-class Section(Object):
+class Section(db.Model):
     """
     Define a section, i.e. a set of spatially-organized wells
     contained within a plate.
@@ -31,7 +24,7 @@ class Section(Object):
     """
 
     __tablename__ = "section"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
 
     col_start = db.Column(db.Integer)
     col_end = db.Column(db.Integer)
@@ -51,18 +44,17 @@ class Section(Object):
     )
     stack = db.relationship("Stack", back_populates="sections", foreign_keys=[stack_id])
 
-    __mapper_args__ = {"polymorphic_identity": "section"}
 
     def __repr__(self):
         return f"<Section {self.id}>"
 
 
-class Item(Object):
+class Item(db.Model):
     """
     Basic object that refers to a resource (file)
     """
     __tablename__ = "item"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     uri = db.Column(db.String(300))
     plate_id = db.Column(db.ForeignKey("plate.id"))
     plate = db.relationship("Plate", back_populates="items", foreign_keys=[plate_id])
@@ -73,22 +65,22 @@ class Item(Object):
     row = db.Column(db.String(1))
     col = db.Column(db.Integer)
     site = db.Column(db.Integer)
+    chan = db.Column(db.Integer)
     item_tag_assoc = db.relationship(
         "ItemTagAssociation",
         back_populates="item",
     )
 
     tags = association_proxy("item_tag_assoc", "tag")
-    __mapper_args__ = {"polymorphic_identity": "item"}
 
 
-class Stack(Object):
+class Stack(db.Model):
     """
     This allows to group different modalities
     """
 
     __tablename__ = "stack"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     comment = db.Column(db.Text())
 
@@ -96,23 +88,22 @@ class Stack(Object):
         "Section", back_populates="stack", foreign_keys="Section.stack_id"
     )
 
-    # Use transition table here to set regexp for each modality
+    # Use transition table here to set channel for each modality
     stack_modality_assoc = db.relationship(
         "StackModalityAssociation",
         back_populates="stack",
     )
     modalities = association_proxy("stack_modality_assoc", "modality")
-    regexps = association_proxy("stack_modality_assoc", "regexp")
+    channels = association_proxy("stack_modality_assoc", "chan")
 
-    __mapper_args__ = {"polymorphic_identity": "stack"}
 
     def __repr__(self):
         return f"<Stack{self.name}>"
 
 
-class Modality(Object):
+class Modality(db.Model):
     __tablename__ = "modality"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     target = db.Column(db.String(100))
     comment = db.Column(db.Text())
@@ -123,7 +114,6 @@ class Modality(Object):
     )
     stacks = association_proxy("stack_modality_assoc", "stack")
 
-    __mapper_args__ = {"polymorphic_identity": "modality"}
 
     def __repr__(self):
         return f"<Modality {self.name}>"
@@ -139,7 +129,7 @@ class StackModalityAssociation(db.Model):
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     stack_id = db.Column(db.ForeignKey("stack.id"), primary_key=True)
     modality_id = db.Column(db.ForeignKey("modality.id"), primary_key=True)
-    pattern = db.Column(db.String(50))
+    chan = db.Column(db.Integer())
 
     stack = db.relationship(
         Stack, back_populates="stack_modality_assoc", foreign_keys=[stack_id]
@@ -147,12 +137,11 @@ class StackModalityAssociation(db.Model):
     modality = db.relationship("Modality", foreign_keys=[modality_id])
 
 
-class Tag(Object):
+class Tag(db.Model):
     __tablename__ = "tag"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     comment = db.Column(db.Text())
-    __mapper_args__ = {"polymorphic_identity": "tag"}
 
     def __repr__(self):
         return f"<Tag {self.name}>"
@@ -172,9 +161,9 @@ class ItemTagAssociation(db.Model):
     tag = db.relationship("Tag", foreign_keys=[tag_id])
 
 
-class Compound(Object):
+class Compound(db.Model):
     __tablename__ = "compound"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     moa_group = db.Column(db.String(100))
     moa_subgroup = db.Column(db.String(100))
@@ -185,40 +174,31 @@ class Compound(Object):
     sections = db.relationship(
         "Section", back_populates="compound", foreign_keys="Section.compound_id"
     )
-    __mapper_args__ = {"polymorphic_identity": "compound"}
 
     def __repr__(self):
         return f"<Compound {self.name}>"
 
 
-class Cell(Object):
+class Cell(db.Model):
     __tablename__ = "cell"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     code = db.Column(db.String(100))
     sections = db.relationship(
         "Section", back_populates="cell", foreign_keys="Section.cell_id"
     )
-    __mapper_args__ = {"polymorphic_identity": "cell"}
 
     def __repr__(self):
         return f"<Cell {self.name}>"
 
 
-class Plate(Object):
+class Plate(db.Model):
     __tablename__ = "plate"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(100))
     date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     origin = db.Column(db.String(100))
     comment = db.Column(db.Text())
-
-    # set regular expression to extract row, column and site coordinates
-    row_regexp = db.Column(db.String(100))
-    col_regexp = db.Column(db.String(100))
-    site_regexp = db.Column(db.String(100))
-    ignore_regexp = db.Column(db.String(100))
-    valid_regexp = db.Column(db.String(100))
 
     # relations
     sections = db.relationship(
@@ -231,23 +211,15 @@ class Plate(Object):
         "Item", back_populates="plate", foreign_keys=Item.plate_id
     )
 
-    __mapper_args__ = {"polymorphic_identity": "plate"}
-
-    def __init__(self, **kwargs):
-        super().__init__(row_regexp=current_app.config['ROW_REGEXP'],
-                 col_regexp=current_app.config['COL_REGEXP'],
-                 site_regexp=current_app.config['SITE_REGEXP'],
-                 ignore_regexp=current_app.config['IGNORE_REGEXP'],
-                 valid_regexp=current_app.config['VALID_REGEXP'], **kwargs)
 
 
     def __repr__(self):
         return f"<Plate {self.name} ({self.id})>"
 
 
-class TimePoint(Object):
+class TimePoint(db.Model):
     __tablename__ = "timepoint"
-    id = db.Column(None, db.ForeignKey("object.id"), primary_key=True)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     time = db.Column(db.DateTime(timezone=True), server_default=func.now())
     uri = db.Column(db.String(300))
     plate_id = db.Column(db.ForeignKey("plate.id"))
@@ -258,7 +230,6 @@ class TimePoint(Object):
         "Item", back_populates="timepoint", foreign_keys=Item.timepoint_id
     )
 
-    __mapper_args__ = {"polymorphic_identity": "timepoint"}
 
     def __repr__(self):
         return f"<TimePoint {self.uri} ({self.id})>"

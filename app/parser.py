@@ -1,14 +1,12 @@
-from .reader.s3 import S3Reader
 from .reader.base import BaseReader
+from typing import Union
 
 
 import re
 
 
 class Parser:
-    """
-
-    """
+    """ """
 
     def __init__(self, reader: BaseReader):
         """
@@ -20,76 +18,68 @@ class Parser:
     def __call__(
         self,
         base_uri: str,
-        ignore_regexp: str,
-        valid_regexp: str,
-        site_regexp: str,
-        row_regexp: str,
-        col_regexp: str,
+        additional_rex: Union[dict[str, str], None] = None,
+        ignore_rex: str = "$^",
+        valid_rex: str = ".*",
         **kwargs
     ):
-        """
+        """ """
 
-        """
+        uris = self.reader.list(base_uri)
+        items = [{"uri": uri} for uri in uris]
 
-        uris = self.reader(base_uri)
-        ignore_rex = re.compile(ignore_regexp)
-        valid_rex = re.compile(valid_regexp)
         items = [
-            {"uri": uri, **kwargs}
+            {"uri": uri}
             for uri in uris
-            if not ignore_rex.match(uri) and valid_rex.match(uri)
+            if not re.compile(ignore_rex).match(uri)
+            and re.compile(valid_rex).match(uri)
         ]
 
         # perform regexp search on URI field using all expression and concatenate to
         # results
-        for k, v in [
-            ("site", re.compile(site_regexp)),
-            ("col", re.compile(col_regexp)),
-            ("row", re.compile(row_regexp)),
-        ]:
-            rex = re.compile(v)
-            # find match on each URI
-            matches = [rex.search(item["uri"]) for item in items]
-            # append if there was a match
-            items = [
-                {**r, k: match_.group(1) if matches else None}
-                for r, match_ in zip(items, matches)
-            ]
+        if additional_rex is not None:
+            for k, v in additional_rex.items():
+                rex = re.compile(v)
+                # find match on each URI
+                matches = [rex.search(item["uri"]) for item in items]
+                # append if there was a match
+                items = [
+                    {**r, k: match_.group(1) if matches else None}
+                    for r, match_ in zip(items, matches)
+                ]
 
         return items
 
 
-class FlaskParser:
+class FlaskParser(Parser):
     """
     Simple extension that wraps a directory parser that retrieves
     data items using a base URI
     """
-    def __init__(self, app=None, db=None, reader=BaseReader()):
-        if (app is not None) and (db is not None):
-            self.init_app(app, db, reader)
 
-    def init_app(self, app, db, reader: BaseReader):
+    def __init__(self, app=None, reader=BaseReader()):
+        if app is not None:
+            self.init_app(app, reader)
+
+    def init_app(self, app, reader: BaseReader):
         self.app = app
-        self.db = db
         self.reader = reader
-        self.parser = Parser(self.reader)
+        self._parser = Parser(self.reader)
+        self.parser_args = {
+            "ignore_rex": app.config["IGNORE_REGEXP"],
+            "valid_rex": app.config["VALID_REGEXP"],
+            "additional_rex": app.config["ADDITIONAL_REGEXP"],
+        }
 
-    def __call__(self, plate, timepoints):
+    def __call__(self, base_uri: Union[str, list[str]], **kwargs):
         from .models import Item
-        items = [
-            self.parser(
-                timepoint.uri,
-                plate.ignore_regexp,
-                plate.valid_regexp,
-                plate.site_regexp,
-                plate.row_regexp,
-                plate.col_regexp,
-                plate_id=plate.id,
-                timepoint_id=timepoint.id,
-            )
-            for timepoint in timepoints
-        ]
-        items = [Item(**i) for items_ in items for i in items_]
 
-        self.db.session.add_all(items)
-        self.db.session.commit()
+        if isinstance(base_uri, str):
+            base_uri = [base_uri]
+
+        items = []
+        for uri in base_uri:
+            items_ = self._parser(uri, **self.parser_args)
+            items += [Item(**i, **kwargs) for i in items_]
+
+        return items

@@ -21,15 +21,16 @@ class TestReader(BaseReader):
             + "/"
             + tp
             + "/"
-            + f"file_{row}{col:02d}_w{chan}_exp.tiff"
+            + f"file_{row}{col:02d}_w{chan}_s{site}_exp.tiff"
             for exp in ["exp1", "exp2", "exp3"]
             for tp in ["tp1", "tp2"]
             for row in ["A", "B", "C"]
             for col in range(12)
-            for chan in range(1, 5)
+            for chan in range(1, 4)
+            for site in range(2)
         ]
 
-    def __call__(self, uri):
+    def list(self, uri) -> list[str]:
         """
         Return all times at uri
         """
@@ -37,12 +38,13 @@ class TestReader(BaseReader):
         if scheme != "scheme":
             raise ParsingException(
                 message=f"Provided scheme {scheme} not supported",
-                operation="list location",
+                payload={"operation": "list location"},
             )
 
         if uri[-1] != "/":
             raise ParsingException(
-                message="Provided URI must end with '/'", operation="list location"
+                message="Provided URI must end with '/'",
+                payload={"operation": "list location"},
             )
 
         return [item for item in self.items if uri in item]
@@ -66,7 +68,7 @@ def app():
         db.create_all()
         restapi.init_app(app)
         register_blueprints(restapi)
-        parser.init_app(app, db, TestReader())
+        parser.init_app(app, TestReader())
         app.test_client_class = CustomClient
 
         yield app
@@ -125,8 +127,10 @@ def populate_db(app):
     stack = db.session.query(Stack).first()
     modalities = db.session.query(Modality).all()[:3]
     assocs = [
-        StackModalityAssociation(stack_id=stack.id, modality_id=m.id, pattern=f'%w{chan}%')
-        for m, chan in zip(modalities, range(1,4))
+        StackModalityAssociation(
+            stack_id=stack.id, modality_id=m.id, chan=c
+        )
+        for m, c in zip(modalities, range(1, 4))
     ]
     db.session.add_all(assocs)
 
@@ -143,7 +147,9 @@ def populate_db(app):
     db.session.add_all(timepoints)
     db.session.commit()
 
-    parser(plate, timepoints)
+    for t in timepoints:
+        items = parser(base_uri=t.uri, plate_id=plate.id, timepoint_id=t.id)
+        db.session.add_all(items)
 
     base_section = {"cell_id": cell.id, "stack_id": stack.id, "plate_id": plate.id}
     sections = [

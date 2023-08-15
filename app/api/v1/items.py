@@ -68,6 +68,7 @@ def get_items_with_meta():
             Item.row,
             Item.col,
             Item.site,
+            Item.chan,
             Plate.name.label("plate_name"),
             Cell.name.label("cell_name"),
             Cell.code.label("cell_code"),
@@ -96,14 +97,14 @@ def get_items_with_meta():
         .join(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
         .join(Tag, ItemTagAssociation.tag_id == Tag.id)
         .filter(
-            Item.uri.like(StackModalityAssociation.pattern),
+            Item.chan == StackModalityAssociation.chan,
             Item.row >= Section.row_start,
             Item.row <= Section.row_end,
             Item.col >= Section.col_start,
             Item.col <= Section.col_end,
         )
         .group_by(Item.id)
-        .order_by(TimePoint.time, Item.row, Item.col, Item.site, Modality.name)
+        .order_by(TimePoint.time, Item.row, Item.col, Item.site)
     )
 
     return items
@@ -169,16 +170,9 @@ class ItemTagger(MethodView):
 
         assocs = [ItemTagAssociation(item_id=i.id, tag_id=id) for i in items]
 
-        n_tagged = 0
-        for a in assocs:
-            try:
-                db.session.add(a)
-                db.session.commit()
-            except:
-                db.session.rollback()
-            else:
-                n_tagged += 1
-        return ["applied tag {} to {} items".format(tag_name, n_tagged)]
+        db.session.add_all(assocs)
+        db.session.commit()
+        return ["applied tag {}".format(tag_name)]
 
     @blp.arguments(ItemsSchema, location="query")
     @blp.paginate()

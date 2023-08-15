@@ -34,11 +34,10 @@ class S3Reader(BaseReader):
 
     def __init__(self):
         self.client = get_bucket_client()
-        self.im_display_size = 512
 
-    def __call__(self, uri):
+    def __call__(self, uri) -> bytes:
         """
-        Return resized image from bucket
+        Return bytes from bucket
 
         TODO throw and re-raise boto ClientError as ReaderException
         """
@@ -47,11 +46,10 @@ class S3Reader(BaseReader):
         client = get_bucket_client()
 
         body = client.get_object(Bucket=bucket, Key=uri.path[1:])["Body"]
-        image = Image.open(body).resize((self.im_display_size, self.im_display_size))
 
-        return np.array(image)
+        return body
 
-    def list(self, uri):
+    def list(self, uri) -> list[str]:
         if uri[-1] != "/":
             return uri
 

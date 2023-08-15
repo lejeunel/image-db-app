@@ -5,7 +5,7 @@ new = {
     "name": "stack_1",
     "comment": "",
     "modalities": ["modality_0", "modality_1", "modality_2"],
-    "patterns": ["%w1%", "%w2%", "%w3%"],
+    "channels": [1, 2, 3],
 }
 
 
@@ -17,7 +17,7 @@ def test_association_update(client):
     update_assoc = dict(new)
 
     update_assoc["modalities"] = ["BrightField", "WGA"]
-    update_assoc["pattern"] = ["%w2%", "%w4%"]
+    update_assoc["chan"] = [2, 4]
     res = client.put(
         "stack/{}".format(item["id"]),
         json={"name": "updated_name"},
@@ -57,7 +57,7 @@ def test_add_channel(client):
     res = client.put(
         "stack/{}".format(item["id"]),
         json={"modalities": ["modality_0", "modality_1", "modality_2", "modality_3"],
-              "patterns": ["%w1%", "%w2%", "%w3%", "%w4%"]}
+              "channels": [1, 2, 3, 4]}
     )
     assert res.status_code == 200
 

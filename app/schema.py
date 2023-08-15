@@ -6,11 +6,12 @@ from .models import Stack, Cell, Compound, Plate, TimePoint
 
 class ItemsSchema(ma.Schema):
 
-    id = ma.fields.UUID(ignore_dump=True)
+    id = ma.fields.UUID()
     uri = ma.fields.String()
     row = ma.fields.String()
     col = ma.fields.Int()
     site = ma.fields.Int()
+    chan = ma.fields.Int()
     plate_name = ma.fields.String()
     cell_name = ma.fields.String()
     cell_code = ma.fields.String()
@@ -168,4 +169,4 @@ class StackSchema(ma.Schema):
     name = ma.fields.String()
     comment = ma.fields.String()
     modalities = ma.fields.List(ma.fields.String())
-    patterns = ma.fields.List(ma.fields.String())
+    channels = ma.fields.List(ma.fields.Int())
