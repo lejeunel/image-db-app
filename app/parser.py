@@ -7,13 +7,13 @@ import re
 
 class Parser:
     """
-    Post-process list of items using regexp
+
     """
 
     def __init__(self, reader: BaseReader):
         """
-        capture_regexp is a dict where keys are meta-data names, and value are regexp strings
-        to capture fields from file names.
+        Retrieves data items (files) using a base URI and filters the output
+        using regular expression
         """
         self.reader = reader
 
@@ -28,7 +28,7 @@ class Parser:
         **kwargs
     ):
         """
-        Return list of Item
+
         """
 
         uris = self.reader(base_uri)
@@ -60,6 +60,10 @@ class Parser:
 
 
 class FlaskParser:
+    """
+    Simple extension that wraps a directory parser that retrieves
+    data items using a base URI
+    """
     def __init__(self, app=None, db=None, reader=BaseReader()):
         if (app is not None) and (db is not None):
             self.init_app(app, db, reader)
