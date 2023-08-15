@@ -4,8 +4,11 @@ import boto3
 from urllib.parse import urlparse
 from pathlib import PurePosixPath
 from .base import BaseReader
+from ..exceptions import ParsingException
 import numpy as np
 from PIL import Image
+from botocore.client import ClientError as BotoClientError
+from aws_error_utils import get_aws_error_info
 
 
 def get_bucket_client():
@@ -52,14 +55,18 @@ class S3Reader(BaseReader):
         if uri[-1] != "/":
             return uri
 
-        pages = get_pages(self.client, uri)
+        try:
+            pages = get_pages(self.client, uri)
 
-        # gather all items at location excluding children nodes ("directories")
-        items = []
-        for p in pages:
-            if "Contents" in p.keys():
-                for o in p["Contents"]:
-                    f = o["Key"]
-                    items.append(uri)
+            # gather all items at location excluding children nodes ("directories")
+            items = []
+            for p in pages:
+                if "Contents" in p.keys():
+                    for o in p["Contents"]:
+                        f = o["Key"]
+                        items.append(uri)
+        except BotoClientError as e:
+            e = get_aws_error_info(e)
+            raise ParsingException(message=e.message, payload={'operation': e.operation_name})
 
         return items

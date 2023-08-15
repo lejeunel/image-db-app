@@ -37,6 +37,7 @@ SQLAlchemy-Utils = "^0.39.0"
 Pillow = "^9.3.0"
 numpy = "^1.25.2"
 pandas = "^2.0.3"
+aws-error-utils = "^2.7.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.2.2"
