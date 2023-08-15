@@ -8,7 +8,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .utils import datetimeformat, file_type
 from .parser import FlaskParser
-from .exceptions import ParsingException
 
 app = Flask(__name__, instance_relative_config=False)
 db = SQLAlchemy()
