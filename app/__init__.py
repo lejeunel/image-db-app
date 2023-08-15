@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .utils import datetimeformat, file_type
 from .batch_loader import FlaskBatchLoader
+from .exceptions import ParsingException
 
 app = Flask(__name__, instance_relative_config=False)
 db = SQLAlchemy()
@@ -16,6 +17,7 @@ migrate = Migrate()
 bootstrap = Bootstrap5()
 restapi = Api()
 pages = FlatPages()
+
 
 
 def register_blueprints(restapi):

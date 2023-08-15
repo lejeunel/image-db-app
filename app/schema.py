@@ -49,11 +49,6 @@ class PlateSchema(ma.Schema):
     project = ma.fields.String()
     comment = ma.fields.String()
 
-    capture_regexp = ma.fields.Dict(keys=ma.fields.Str(), values=ma.fields.String(),
-                                    load_default=cfg.CAPTURE_REGEXP_DICT)
-    ignore_regexp = ma.fields.String(load_default=cfg.IGNORE_REGEXP)
-    valid_regexp = ma.fields.String(load_default=cfg.VALID_REGEXP)
-
     @ma.post_dump()
     def append_timepoints(self, data, **kwargs):
         timepoints = TimePoint.query.filter(Plate.id == data['id'])

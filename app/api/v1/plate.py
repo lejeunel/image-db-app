@@ -3,8 +3,8 @@ import re
 
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
-from flask import current_app
+from flask_smorest import Blueprint
+from flask import jsonify
 
 from ... import db, app, loader
 from ...models import Item, ItemTagAssociation, Plate, TimePoint
@@ -12,8 +12,13 @@ from ...schema import PlateSchema
 from . import admin_required, check_duplicate
 from ...reader.s3 import S3Reader
 from ...batch_loader import BatchLoader
+from ...exceptions import ParsingException
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")
+
+@blp.errorhandler(ParsingException)
+def parsing_exception(e):
+    return jsonify(e.to_dict()), e.status_code
 
 
 @blp.route("/<uuid:id>")
@@ -32,7 +37,7 @@ class PlateAPI(MethodView):
     @blp.arguments(PlateSchema)
     @blp.response(200, PlateSchema)
     def put(self, data, id):
-        """Update plate"""
+        """Update plate. This does not modify timepoints!"""
         data.pop('timepoints', None)
         res = record_exists(Plate, id)
 
@@ -65,15 +70,6 @@ class PlateAPI(MethodView):
             db.session.delete(item)
 
         db.session.commit()
-
-    @admin_required
-    @blp.arguments(PlateSchema)
-    @blp.response(200, PlateSchema)
-    def patch(self, update_data, id):
-        """Patch plate"""
-        res = PlateAPI._update(id, update_data)
-
-        return res
 
 
 

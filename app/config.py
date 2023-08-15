@@ -26,8 +26,9 @@ class Config:
     ITEMS_PER_PAGE = 20
 
     # Default regular expression for parsing image files
-    CAPTURE_REGEXP_DICT = {'row': r"^.*_([A-Z])[0-9][0-9]_.*$",
-                           'col': r"^.*_[A-Z]([0-9][0-9])_.*$"}
+    ROW_REGEXP = r"^.*_([A-Z])[0-9][0-9]_.*$"
+    COL_REGEXP = r"^.*_[A-Z]([0-9][0-9])_.*$"
+    SITE_REGEXP = r"^.*_w([0-9]?[0-9])_.*$"
     IGNORE_REGEXP = r"^.*_thumb.*$"
     VALID_REGEXP = r"^.*\.tiff?$"
 

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import pytest
 from app.models import ItemTagAssociation
 from app.reader.base import BaseReader
-from app.reader import ReaderException
+from app.exceptions import ParsingException
 from flask import testing
 from flask import Flask
 
@@ -21,7 +21,7 @@ class TestReader(BaseReader):
             + "/"
             + tp
             + "/"
-            + f"file_{row}{col:02d}_w{chan}.tiff"
+            + f"file_{row}{col:02d}_w{chan}_exp.tiff"
             for exp in ["exp1", "exp2", "exp3"]
             for tp in ["tp1", "tp2"]
             for row in ["A", "B", "C"]
@@ -35,13 +35,13 @@ class TestReader(BaseReader):
         """
         scheme = urlparse(uri).scheme
         if scheme != "scheme":
-            raise ReaderException(
+            raise ParsingException(
                 message=f"Provided scheme {scheme} not supported",
                 operation="list location",
             )
 
         if uri[-1] != "/":
-            raise ReaderException(
+            raise ParsingException(
                 message="Provided URI must end with '/'", operation="list location"
             )
 
@@ -132,9 +132,6 @@ def populate_db(app):
 
     plate = Plate(
         name="first plate",
-        capture_regexp=app.config["CAPTURE_REGEXP_DICT"],
-        ignore_regexp=app.config["IGNORE_REGEXP"],
-        valid_regexp=app.config["VALID_REGEXP"],
     )
     db.session.add(plate)
     db.session.commit()

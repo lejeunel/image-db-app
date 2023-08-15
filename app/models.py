@@ -2,8 +2,9 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import func
+from flask import current_app
 
-from . import db
+from . import db, app
 
 from sqlalchemy_utils.types.uuid import UUIDType
 import uuid
@@ -213,7 +214,9 @@ class Plate(Object):
     comment = db.Column(db.Text())
 
     # set regular expression to extract row, column and site coordinates
-    capture_regexp = db.Column(db.JSON(100))
+    row_regexp = db.Column(db.String(100))
+    col_regexp = db.Column(db.String(100))
+    site_regexp = db.Column(db.String(100))
     ignore_regexp = db.Column(db.String(100))
     valid_regexp = db.Column(db.String(100))
 
@@ -229,6 +232,14 @@ class Plate(Object):
     )
 
     __mapper_args__ = {"polymorphic_identity": "plate"}
+
+    def __init__(self, **kwargs):
+        super().__init__(row_regexp=current_app.config['ROW_REGEXP'],
+                 col_regexp=current_app.config['COL_REGEXP'],
+                 site_regexp=current_app.config['SITE_REGEXP'],
+                 ignore_regexp=current_app.config['IGNORE_REGEXP'],
+                 valid_regexp=current_app.config['VALID_REGEXP'], **kwargs)
+
 
     def __repr__(self):
         return f"<Plate {self.name} ({self.id})>"

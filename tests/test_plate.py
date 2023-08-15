@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
+from marshmallow import ValidationError
 from app.config import default as cfg
 from app.models import TimePoint
+from app import loader
+from app.exceptions import ParsingException
+from unittest.mock import patch
+
 
 existing = {
     "name": "first plate",
@@ -51,3 +56,20 @@ def test_update(client):
 
     assert res.status_code == 200
     assert res.json["name"] == "new name"
+
+def test_create_bad_uri(app, client):
+
+    from app import db
+    from .conftest import TestReader
+
+    class FailingReader(TestReader):
+        def __call__(self, *args, **kwargs):
+            raise ParsingException(message='test')
+
+
+    with app.app_context():
+        reader = FailingReader()
+        loader.init_app(app, db, reader)
+
+        res = client.post("plate/", json=new)
+        assert res.status_code == 400

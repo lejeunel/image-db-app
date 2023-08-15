@@ -10,59 +10,82 @@ class BatchLoader:
     Post-process list of items using regexp
     """
 
-    def __init__(
-        self, reader: BaseReader
-    ):
+    def __init__(self, reader: BaseReader):
         """
         capture_regexp is a dict where keys are meta-data names, and value are regexp strings
         to capture fields from file names.
         """
         self.reader = reader
 
-    def __call__(self, plate, timepoints):
+    def __call__(
+        self,
+        base_uri: str,
+        ignore_regexp: str,
+        valid_regexp: str,
+        site_regexp: str,
+        row_regexp: str,
+        col_regexp: str,
+        **kwargs
+    ):
         """
         Return list of Item
         """
-        from .models import Item
 
-        items = []
-        for tp in timepoints:
-            uris = self.reader(tp.uri)
-            ignore_rex = re.compile(plate.ignore_regexp)
-            valid_rex = re.compile(plate.valid_regexp)
-            items_ = [
-                {"uri": uri, 'timepoint_id': tp.id,
-                 'plate_id': plate.id} for uri in uris if not ignore_rex.match(uri) and valid_rex.match(uri)
+        uris = self.reader(base_uri)
+        ignore_rex = re.compile(ignore_regexp)
+        valid_rex = re.compile(valid_regexp)
+        items = [
+            {"uri": uri, **kwargs}
+            for uri in uris
+            if not ignore_rex.match(uri) and valid_rex.match(uri)
+        ]
+
+        # perform regexp search on URI field using all expression and concatenate to
+        # results
+        for k, v in [
+            ("site", re.compile(site_regexp)),
+            ("col", re.compile(col_regexp)),
+            ("row", re.compile(row_regexp)),
+        ]:
+            rex = re.compile(v)
+            # find match on each URI
+            matches = [rex.search(item["uri"]) for item in items]
+            # append if there was a match
+            items = [
+                {**r, k: match_.group(1) if matches else None}
+                for r, match_ in zip(items, matches)
             ]
-
-            # perform regexp search on URI field using all expression and concatenate to
-            # results
-            for k, v in plate.capture_regexp.items():
-                rex = re.compile(v)
-                # find match on each URI
-                matches = [rex.search(item["uri"]) for item in items_]
-                # append if there was a match
-                items_ = [
-                    {**r, k: match_.group(1) if matches else None}
-                    for r, match_ in zip(items_, matches)
-                ]
-            items += [Item(**item) for item in items_]
 
         return items
 
 
-
-class FlaskBatchLoader(BatchLoader):
+class FlaskBatchLoader:
     def __init__(self, app=None, db=None, reader=BaseReader()):
         if (app is not None) and (db is not None):
             self.init_app(app, db, reader)
 
     def init_app(self, app, db, reader: BaseReader):
+        self.app = app
         self.db = db
         self.reader = reader
-
+        self.loader = BatchLoader(self.reader)
 
     def __call__(self, plate, timepoints):
-        items = super().__call__(plate, timepoints)
+        from .models import Item
+        items = [
+            self.loader(
+                timepoint.uri,
+                plate.ignore_regexp,
+                plate.valid_regexp,
+                plate.site_regexp,
+                plate.row_regexp,
+                plate.col_regexp,
+                plate_id=plate.id,
+                timepoint_id=timepoint.id,
+            )
+            for timepoint in timepoints
+        ]
+        items = [Item(**i) for items_ in items for i in items_]
+
         self.db.session.add_all(items)
         self.db.session.commit()
