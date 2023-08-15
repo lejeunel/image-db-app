@@ -56,7 +56,7 @@ class CustomClient(testing.FlaskClient):
 
 @pytest.fixture()
 def app():
-    from app import db, restapi, loader, register_blueprints
+    from app import db, restapi, parser, register_blueprints
 
     app = Flask(__name__, instance_relative_config=False)
 
@@ -66,7 +66,7 @@ def app():
         db.create_all()
         restapi.init_app(app)
         register_blueprints(restapi)
-        loader.init_app(app, db, TestReader())
+        parser.init_app(app, db, TestReader())
         app.test_client_class = CustomClient
 
         yield app
@@ -84,7 +84,7 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def populate_db(app):
-    from app import db, loader
+    from app import db, parser
     from app.models import (
         Modality,
         Plate,
@@ -125,8 +125,8 @@ def populate_db(app):
     stack = db.session.query(Stack).first()
     modalities = db.session.query(Modality).all()[:3]
     assocs = [
-        StackModalityAssociation(stack_id=stack.id, modality_id=m.id)
-        for m in modalities
+        StackModalityAssociation(stack_id=stack.id, modality_id=m.id, pattern=f'%w{chan}%')
+        for m, chan in zip(modalities, range(1,4))
     ]
     db.session.add_all(assocs)
 
@@ -143,7 +143,7 @@ def populate_db(app):
     db.session.add_all(timepoints)
     db.session.commit()
 
-    loader(plate, timepoints)
+    parser(plate, timepoints)
 
     base_section = {"cell_id": cell.id, "stack_id": stack.id, "plate_id": plate.id}
     sections = [

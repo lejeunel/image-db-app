@@ -31,7 +31,7 @@ field_to_attr = {
     "row": Item.row,
     "col": Item.col,
     "site": Item.site,
-    "batch_name": Plate.name,
+    "plate_name": Plate.name,
     "cell_name": Cell.name,
     "cell_code": Cell.code,
     "stack_name": Stack.name,
@@ -93,8 +93,10 @@ def get_items_with_meta():
         .join(StackModalityAssociation, StackModalityAssociation.stack_id == Stack.id)
         .join(Modality, StackModalityAssociation.modality_id == Modality.id)
         .join(Compound, Section.compound_id == Compound.id)
+        .join(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
+        .join(Tag, ItemTagAssociation.tag_id == Tag.id)
         .filter(
-            Item.uri.like(StackModalityAssociation.regexp),
+            Item.uri.like(StackModalityAssociation.pattern),
             Item.row >= Section.row_start,
             Item.row <= Section.row_end,
             Item.col >= Section.col_start,

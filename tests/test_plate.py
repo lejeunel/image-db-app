@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from marshmallow import ValidationError
 from app.config import default as cfg
-from app.models import TimePoint
-from app import loader
+from app.models import TimePoint, ItemTagAssociation
+from app import parser
 from app.exceptions import ParsingException
 from unittest.mock import patch
 
@@ -19,6 +19,8 @@ new = {
 
 
 def test_delete(client):
+
+
     plate_id = client.get("plate/").json[0]["id"]
     res = client.delete(f"plate/{plate_id}")
 
@@ -69,7 +71,7 @@ def test_create_bad_uri(app, client):
 
     with app.app_context():
         reader = FailingReader()
-        loader.init_app(app, db, reader)
+        parser.init_app(app, db, reader)
 
         res = client.post("plate/", json=new)
         assert res.status_code == 400

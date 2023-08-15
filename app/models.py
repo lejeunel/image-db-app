@@ -139,7 +139,7 @@ class StackModalityAssociation(db.Model):
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     stack_id = db.Column(db.ForeignKey("stack.id"), primary_key=True)
     modality_id = db.Column(db.ForeignKey("modality.id"), primary_key=True)
-    regexp = db.Column(db.String(50))
+    pattern = db.Column(db.String(50))
 
     stack = db.relationship(
         Stack, back_populates="stack_modality_assoc", foreign_keys=[stack_id]

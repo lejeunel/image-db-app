@@ -77,6 +77,20 @@ wrapt = [
 ]
 
 [[package]]
+name = "aws-error-utils"
+version = "2.7.0"
+description = "Error-handling functions for boto3/botocore"
+optional = false
+python-versions = ">=3.7,<4"
+files = [
+    {file = "aws_error_utils-2.7.0-py3-none-any.whl", hash = "sha256:fc6e556340a14af58e19bc60faf635d3eea9abbacb7f06e54a908e8234c60a50"},
+    {file = "aws_error_utils-2.7.0.tar.gz", hash = "sha256:07107af2a2c26706cd9525b7ffbed43f2d07b50d27e39f9e9156c11b2e993c97"},
+]
+
+[package.dependencies]
+botocore = "*"
+
+[[package]]
 name = "azure-ad-verify-token"
 version = "0.3.0"
 description = "Verify JWT issued by Azure Active Directory B2C in Python."
@@ -2039,4 +2053,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "dc1e40a406cf3ce03b6bb325ae6620995024462f11c0dd60960487bf0aa28101"
+content-hash = "d4551189fb06198c0f3132ad55e1f04d8afab37fea98020e2012dcc7e77c8388"

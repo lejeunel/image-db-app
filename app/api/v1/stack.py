@@ -120,7 +120,7 @@ class StackAPI(MethodView):
                 "modality_id": Modality.query.filter_by(name=r["modalities"])
                 .first()
                 .id,
-                "regexp": r["regexps"],
+                "pattern": r["patterns"],
             }
             assoc.append(StackModalityAssociation(**data))
 
@@ -159,7 +159,7 @@ class StackAPI(MethodView):
                 modality_id = Modality.query.filter_by(name=a["modalities"]).first().id
 
                 assoc = StackModalityAssociation(
-                    stack_id=id, modality_id=modality_id, regexp=a["regexps"]
+                    stack_id=id, modality_id=modality_id, pattern=a["patterns"]
                 )
                 db.session.add(assoc)
 

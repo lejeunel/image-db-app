@@ -91,6 +91,9 @@ class SectionSchema(ma.Schema):
     cell_code = ma.fields.String()
     compound_name = ma.fields.String()
     compound_concentration = ma.fields.Float()
+    cell_id = ma.fields.String(dump_only=True)
+    compound_id = ma.fields.String(dump_only=True)
+    stack_id = ma.fields.String(dump_only=True)
 
     @ma.post_dump()
     def stack_id_to_name(self, data, **kwargs):
@@ -165,4 +168,4 @@ class StackSchema(ma.Schema):
     name = ma.fields.String()
     comment = ma.fields.String()
     modalities = ma.fields.List(ma.fields.String())
-    regexps = ma.fields.List(ma.fields.String())
+    patterns = ma.fields.List(ma.fields.String())

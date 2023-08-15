@@ -6,12 +6,11 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from flask import jsonify
 
-from ... import db, app, loader
+from ... import db, app, parser
 from ...models import Item, ItemTagAssociation, Plate, TimePoint
 from ...schema import PlateSchema
 from . import admin_required, check_duplicate
 from ...reader.s3 import S3Reader
-from ...batch_loader import BatchLoader
 from ...exceptions import ParsingException
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")
@@ -102,7 +101,7 @@ class PlatesAPI(MethodView):
         db.session.add(plate)
         db.session.commit()
 
-        loader(plate, timepoints)
+        parser(plate, timepoints)
 
 
         return plate

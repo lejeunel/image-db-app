@@ -39,7 +39,7 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
     return coordinates
 
 
-@blp.route("/plate/<uuid:plate_id>/sections/")
+@blp.route("/plate/<uuid:plate_id>/sections")
 class SectionsAPI(MethodView):
     @blp.response(200, SectionSchema(many=True))
     def get(self, plate_id):
@@ -76,6 +76,7 @@ class SectionAPI(MethodView):
     def get(self, id):
         """Get section"""
 
+        breakpoint()
         res = record_exists(Section, id)
 
         return res.first()

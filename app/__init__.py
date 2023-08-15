@@ -7,12 +7,12 @@ from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 
 from .utils import datetimeformat, file_type
-from .batch_loader import FlaskBatchLoader
+from .parser import FlaskParser
 from .exceptions import ParsingException
 
 app = Flask(__name__, instance_relative_config=False)
 db = SQLAlchemy()
-loader = FlaskBatchLoader()
+parser = FlaskParser()
 migrate = Migrate()
 bootstrap = Bootstrap5()
 restapi = Api()
@@ -143,7 +143,7 @@ def create_app(mode="dev"):
     migrate.init_app(app, db)
     restapi.init_app(app)
     pages.init_app(app)
-    loader.init_app(app)
+    parser.init_app(app)
 
     register_blueprints(restapi)
 
