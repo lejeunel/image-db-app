@@ -38,6 +38,7 @@ Pillow = "^9.3.0"
 numpy = "^1.25.2"
 pandas = "^2.0.3"
 aws-error-utils = "^2.7.0"
+sqlalchemy-mptt = "^0.2.5"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.2.2"

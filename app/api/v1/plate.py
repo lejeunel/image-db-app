@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-import re
 
 from app.utils import record_exists
+from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
-from flask import jsonify
 
-from ... import db, app, parser
-from ...models import Item, ItemTagAssociation, Plate, TimePoint
+from ... import db, parser
+from ...exceptions import ParsingException
+from ...models import ItemTagAssociation, Plate, TimePoint
 from ...schema import PlateSchema
 from . import admin_required, check_duplicate
-from ...reader.s3 import S3Reader
-from ...exceptions import ParsingException
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")
 

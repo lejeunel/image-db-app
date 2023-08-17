@@ -90,8 +90,8 @@ class CellsAPI(MethodView):
     @admin_required
     @blp.arguments(CellSchema)
     @blp.response(201, CellSchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new cell"""
-        res = CellAPI._create(new_data)
+        res = CellAPI._create(data)
 
         return res

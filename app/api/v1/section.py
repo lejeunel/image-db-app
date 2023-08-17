@@ -61,11 +61,11 @@ class SectionsAPI(MethodView):
     @admin_required
     @blp.arguments(SectionSchema)
     @blp.response(201, SectionSchema)
-    def post(self, new_data, plate_id):
+    def post(self, data, plate_id):
         """Add a new section"""
 
-        new_data["plate_id"] = plate_id
-        res = SectionAPI._create(new_data)
+        data["plate_id"] = plate_id
+        res = SectionAPI._create(data)
 
         return res
 

@@ -11,6 +11,7 @@ from ... import db
 from ...models import (
     Cell,
     Compound,
+    CompoundProperty,
     Item,
     ItemTagAssociation,
     Modality,
@@ -39,9 +40,6 @@ field_to_attr = {
     "modality_target": Modality.target,
     "compound_concentration": Section.compound_concentration,
     "compound_name": Compound.name,
-    "compound_target": Compound.target,
-    "compound_moa_group": Compound.moa_group,
-    "compound_moa_subgroup": Compound.moa_subgroup,
     "tag": Tag.name,
     "tp_time": TimePoint.time,
     "timepoint_id": TimePoint.id,
@@ -77,9 +75,7 @@ def get_items_with_meta():
             Modality.target.label("modality_target"),
             Section.compound_concentration.label("compound_concentration"),
             Compound.name.label("compound_name"),
-            Compound.target.label("compound_target"),
-            Compound.moa_group.label("compound_moa_group"),
-            Compound.moa_subgroup.label("compound_moa_subgroup"),
+            CompoundProperty.id.label("compound_property_id"),
             TimePoint.time.label("timepoint_time"),
             TimePoint.id.label("timepoint_id"),
             Section.id.label("section_id"),
@@ -94,6 +90,7 @@ def get_items_with_meta():
         .join(StackModalityAssociation, StackModalityAssociation.stack_id == Stack.id)
         .join(Modality, StackModalityAssociation.modality_id == Modality.id)
         .join(Compound, Section.compound_id == Compound.id)
+        .join(CompoundProperty, CompoundProperty.id == Compound.property_id)
         .join(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
         .join(Tag, ItemTagAssociation.tag_id == Tag.id)
         .filter(
@@ -107,19 +104,6 @@ def get_items_with_meta():
         .order_by(TimePoint.time, Item.row, Item.col, Item.site)
     )
 
-    return items
-
-
-def append_tag_row(item):
-    assocs = ItemTagAssociation.query.filter_by(item_id=item["id"]).all()
-    tags = ",".join([a.tag.name for a in assocs])
-    item["tags"] = tags
-    return item
-
-
-def append_tag_col(items):
-    for item in items:
-        im = append_tag_row(item)
     return items
 
 
@@ -150,7 +134,6 @@ class Items(MethodView):
         ).items
 
         items = make_records(items, ItemsSchema._declared_fields.keys())
-        items = append_tag_col(items)
         return items
 
 

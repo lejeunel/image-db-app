@@ -2,10 +2,18 @@
 import marshmallow as ma
 from app.utils import record_exists
 from .config import default as cfg
-from .models import Stack, Cell, Compound, Plate, TimePoint
+from .models import (
+    Stack,
+    Cell,
+    Compound,
+    Plate,
+    TimePoint,
+    CompoundPropertyType,
+    CompoundProperty,
+)
+
 
 class ItemsSchema(ma.Schema):
-
     id = ma.fields.UUID()
     uri = ma.fields.String()
     row = ma.fields.String()
@@ -20,14 +28,31 @@ class ItemsSchema(ma.Schema):
     modality_target = ma.fields.String()
     compound_concentration = ma.fields.Float()
     compound_name = ma.fields.String()
-    compound_target = ma.fields.String()
-    compound_moa_group = ma.fields.String()
-    compound_moa_subgroup = ma.fields.String()
+    compound_property_id = ma.fields.Int()
     tp_time = ma.fields.DateTime()
     timepoint_id = ma.fields.UUID()
     section_id = ma.fields.UUID()
     plate_id = ma.fields.UUID()
     tags = ma.fields.String()
+
+    @ma.post_dump()
+    def concat_compound_props(
+        self, data, prefix="compound_", id_field="compound_property_id", **kwargs
+    ):
+        # get properties of all ancestors
+        properties = (
+            CompoundProperty.query.get(data["compound_property_id"])
+            .path_to_root()
+            .all()
+        )
+        properties = [(p.type._name_, p.name) for p in properties]
+
+        # convert to dict and concatenate prefix
+        properties = {prefix + f"{p[0]}": p[1] for p in properties}
+
+        data = {**data, **properties}
+        return data
+
 
 class TimePointSchema(ma.Schema):
     class Meta:
@@ -52,9 +77,9 @@ class PlateSchema(ma.Schema):
 
     @ma.post_dump()
     def append_timepoints(self, data, **kwargs):
-        timepoints = TimePoint.query.filter(Plate.id == data['id'])
+        timepoints = TimePoint.query.filter(Plate.id == data["id"])
         timepoints = TimePointSchema(many=True).dump(timepoints)
-        data['timepoints'] = timepoints
+        data["timepoints"] = timepoints
         return data
 
 
@@ -73,11 +98,19 @@ class CompoundSchema(ma.Schema):
 
     id = ma.fields.UUID(dump_only=True)
     name = ma.fields.String()
-    moa_group = ma.fields.String()
-    moa_subgroup = ma.fields.String()
-    target = ma.fields.String()
+    property_id = ma.fields.Int()
     comment = ma.fields.String()
     bcs = ma.fields.String()
+
+
+class CompoundPropertySchema(ma.Schema):
+    class Meta:
+        ordered = True
+
+    id = ma.fields.Int(dump_only=True)
+    type = ma.fields.Enum(CompoundPropertyType)
+    name = ma.fields.String()
+
 
 class SectionSchema(ma.Schema):
     class Meta:
@@ -160,6 +193,7 @@ class SectionSchema(ma.Schema):
             record_exists(Cell, value=data["cell_code"], field="code")
 
         return data
+
 
 class StackSchema(ma.Schema):
     class Meta:

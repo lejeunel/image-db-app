@@ -1783,6 +1783,19 @@ pymysql = ["pymysql", "pymysql (<1)"]
 sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
+name = "sqlalchemy-mptt"
+version = "0.2.5"
+description = "SQLAlchemy MPTT mixins (Nested Sets)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sqlalchemy_mptt-0.2.5.tar.gz", hash = "sha256:d6e62dc0237b9e7aea509f0f7fb138d8fe1527ab6ad741e428e5647a5d83af35"},
+]
+
+[package.dependencies]
+SQLAlchemy = ">=1.0.0"
+
+[[package]]
 name = "sqlalchemy-utils"
 version = "0.39.0"
 description = "Various utility functions for SQLAlchemy."
@@ -2053,4 +2066,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d4551189fb06198c0f3132ad55e1f04d8afab37fea98020e2012dcc7e77c8388"
+content-hash = "6d37610d3a39ccf40a2f3aced3649592db72eb533b34b698c19048821f2f7fef"

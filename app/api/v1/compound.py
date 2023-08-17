@@ -4,13 +4,13 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from ...models import Compound
+from ...models import Compound, CompoundProperty
 from . import (
     admin_required,
     check_dependencies,
     check_duplicate,
 )
-from app.schema import CompoundSchema
+from app.schema import CompoundSchema, CompoundPropertySchema
 from app.utils import record_exists
 
 blp = Blueprint(
@@ -103,9 +103,31 @@ class CompoundsAPI(MethodView):
     @admin_required
     @blp.arguments(CompoundSchema)
     @blp.response(201, CompoundSchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new compound"""
 
-        res = CompoundAPI._create(new_data)
+        res = CompoundAPI._create(data)
 
         return res
+
+@blp.route("/prop/")
+class CompoundPropertyAPI(MethodView):
+    model = CompoundProperty
+
+    @blp.response(200, CompoundSchema(many=True))
+    def get(self):
+        """Get all compound properties"""
+
+        return CompoundProperty.query.all()
+
+    @admin_required
+    @blp.arguments(CompoundPropertySchema)
+    @blp.response(201, CompoundPropertySchema)
+    def post(self, data):
+        """Add a new compound"""
+
+        prop = CompoundProperty(**data)
+        db.session.add(prop)
+        db.session.commit()
+
+        return prop

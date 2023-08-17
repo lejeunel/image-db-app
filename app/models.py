@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import func
-from flask import current_app
+from sqlalchemy_mptt.mixins import BaseNestedSets
+import enum
+from sqlalchemy import Enum
 
-from . import db, app
+from . import db
 
 from sqlalchemy_utils.types.uuid import UUIDType
 import uuid
 
 __all__ = ["cell", "compound", "tag", "section", "plate", "modality", "stack"]
-
 
 
 class Section(db.Model):
@@ -44,7 +44,6 @@ class Section(db.Model):
     )
     stack = db.relationship("Stack", back_populates="sections", foreign_keys=[stack_id])
 
-
     def __repr__(self):
         return f"<Section {self.id}>"
 
@@ -53,6 +52,7 @@ class Item(db.Model):
     """
     Basic object that refers to a resource (file)
     """
+
     __tablename__ = "item"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
     uri = db.Column(db.String(300))
@@ -96,7 +96,6 @@ class Stack(db.Model):
     modalities = association_proxy("stack_modality_assoc", "modality")
     channels = association_proxy("stack_modality_assoc", "chan")
 
-
     def __repr__(self):
         return f"<Stack{self.name}>"
 
@@ -113,7 +112,6 @@ class Modality(db.Model):
         back_populates="modality",
     )
     stacks = association_proxy("stack_modality_assoc", "stack")
-
 
     def __repr__(self):
         return f"<Modality {self.name}>"
@@ -161,19 +159,34 @@ class ItemTagAssociation(db.Model):
     tag = db.relationship("Tag", foreign_keys=[tag_id])
 
 
+class CompoundPropertyType(enum.Enum):
+    moa_group = 1
+    moa_subgroup = 2
+    target = 3
+
+
+class CompoundProperty(db.Model, BaseNestedSets):
+    __tablename__ = "compound_property"
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(Enum(CompoundPropertyType))
+    name = db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<CpdProperty {self.type._name_}: {self.name}>"
+
+
 class Compound(db.Model):
     __tablename__ = "compound"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    property_id = db.Column(db.ForeignKey("compound_property.id"), primary_key=True)
     name = db.Column(db.String(100))
-    moa_group = db.Column(db.String(100))
-    moa_subgroup = db.Column(db.String(100))
-    target = db.Column(db.String(100))
     bcs = db.Column(db.String(100))
     comment = db.Column(db.Text())
 
     sections = db.relationship(
         "Section", back_populates="compound", foreign_keys="Section.compound_id"
     )
+    props = db.relationship("CompoundProperty", foreign_keys=[property_id])
 
     def __repr__(self):
         return f"<Compound {self.name}>"
@@ -207,11 +220,7 @@ class Plate(db.Model):
     timepoints = db.relationship(
         "TimePoint", back_populates="plate", foreign_keys="TimePoint.plate_id"
     )
-    items = db.relationship(
-        "Item", back_populates="plate", foreign_keys=Item.plate_id
-    )
-
-
+    items = db.relationship("Item", back_populates="plate", foreign_keys=Item.plate_id)
 
     def __repr__(self):
         return f"<Plate {self.name} ({self.id})>"
@@ -229,7 +238,6 @@ class TimePoint(db.Model):
     items = db.relationship(
         "Item", back_populates="timepoint", foreign_keys=Item.timepoint_id
     )
-
 
     def __repr__(self):
         return f"<TimePoint {self.uri} ({self.id})>"

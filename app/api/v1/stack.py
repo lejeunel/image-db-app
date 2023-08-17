@@ -212,9 +212,9 @@ class StacksAPI(MethodView):
     @admin_required
     @blp.arguments(StackSchema)
     @blp.response(201, StackSchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new stack"""
 
-        res = StackAPI._create(new_data)
+        res = StackAPI._create(data)
 
         return res

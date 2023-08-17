@@ -109,8 +109,8 @@ class ModalitiesAPI(MethodView):
     @admin_required
     @blp.arguments(ModalitySchema)
     @blp.response(201, ModalitySchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new modality"""
-        res = ModalityAPI._create(new_data)
+        res = ModalityAPI._create(data)
 
         return res

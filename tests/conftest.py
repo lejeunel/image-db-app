@@ -98,6 +98,7 @@ def populate_db(app):
         Item,
         TimePoint,
         StackModalityAssociation,
+        CompoundProperty
     )
 
     modalities = [
@@ -109,9 +110,29 @@ def populate_db(app):
     ]
     db.session.add_all(modalities)
 
+
+    db.session.add(CompoundProperty(name="g1", type="moa_group"))  # root node
+    db.session.add(CompoundProperty(name="g2", type="moa_group"))  # root node
+    db.session.add_all(  # first level
+        [
+            CompoundProperty(name="sg3", parent_id=1, type="moa_subgroup"),
+            CompoundProperty(name="sg4", parent_id=1, type="moa_subgroup"),
+            CompoundProperty(name="sg5", parent_id=2, type="moa_subgroup"),
+        ]
+    )
+    db.session.add_all(  # second level
+        [
+            CompoundProperty(name="t6", parent_id=5, type="target"),
+            CompoundProperty(name="t7", parent_id=4, type="target"),
+            CompoundProperty(name="t8", parent_id=3, type="target"),
+        ]
+    )
+    db.session.commit()
+
+
     compounds = [
-        Compound(**{"name": f"compound_{c}", "target": f"compound_target_{t}"})
-        for c, t in zip(range(4), range(4))
+        Compound(**{"name": f"compound_{c}", "property_id": p})
+        for c, p in zip(range(4), [8,7,5])
     ]
     db.session.add_all(compounds)
 

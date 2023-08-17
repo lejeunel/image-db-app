@@ -127,8 +127,8 @@ class TagsAPI(MethodView):
     @admin_required
     @blp.arguments(TagSchema)
     @blp.response(201, TagSchema)
-    def post(self, new_data):
+    def post(self, data):
         """Add a new tag"""
-        res = TagAPI._create(new_data)
+        res = TagAPI._create(data)
 
         return res
