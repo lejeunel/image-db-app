@@ -2,6 +2,7 @@ import uuid
 
 from app import db, ma
 from sqlalchemy_utils.types.uuid import UUIDType
+from marshmallow import pre_dump
 
 
 class Stack(db.Model):
@@ -39,5 +40,3 @@ class StackSchema(ma.SQLAlchemySchema):
     id = ma.auto_field()
     name = ma.auto_field()
     comment = ma.auto_field()
-    modalities = ma.List(ma.String())
-    channels = ma.List(ma.Int())

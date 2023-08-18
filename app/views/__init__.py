@@ -3,33 +3,31 @@ import json
 import json2table
 from flask import render_template, request
 from flask.views import View
-from app.utils import make_records
-from app.schema import ImagesSchema
+from app.api.v1.items import get_items_with_meta
+from app import db
 
 
-def make_image_pagination(images, page, images_per_page):
+def make_item_pagination(items, page, items_per_page):
+    # TODO this should use schema
 
-    images_paginate = images.paginate(
-        page=page, per_page=images_per_page, error_out=False
-    )
-    images = [dict(im._mapping) for im in images_paginate.items]
+    items_paginate = items.paginate(page=page, per_page=items_per_page, error_out=False)
+    items = [dict(im._mapping) for im in items_paginate.items]
 
-    if images:
-
+    if items:
         # rename keys to only keep file name
-        for im in images:
-            im["key"] = im["key"].split("/")[-1]
+        for im in items:
+            im["uri"] = im["uri"].split("/")[-1]
         # we skip some fields
         col_names = [
             c
-            for c in images[0].keys()
+            for c in items[0].keys()
             if c not in ["id", "plate_id", "section_id", "stack", "cell", "cell_code"]
         ]
     else:
-        images = []
+        items = []
         col_names = []
 
-    return images_paginate, col_names, images
+    return items_paginate, col_names, items
 
 
 class ItemView(View):
@@ -40,22 +38,21 @@ class ItemView(View):
     template: path to template file
     """
 
-    def __init__(self, model, schema, images_per_page):
+    def __init__(self, model, schema, items_per_page):
         self.model = model
         self.schema = schema
-        self.images_per_page = images_per_page
+        self.items_per_page = items_per_page
         self.template = "detail/generic.html"
 
-    def get_item_name(self, id):
-        if "name" in self.model.__mapper__.attrs:
-            return self.model.query.get(id).name
-        return str(id)
+    def infer_name(self, data):
+        if "name" in data:
+            return data["name"]
+        return str(data["id"])
 
-    def make_summary_table(self, id):
-        item = self.model.query.get(id)
-        item = json.loads(self.schema().dumps(item))
+    def make_summary_table(self, obj):
+        data = self.schema().dump(obj)
         table = json2table.convert(
-            item,
+            data,
             build_direction="LEFT_TO_RIGHT",
             table_attributes={
                 "style": "width:100%",
@@ -65,31 +62,40 @@ class ItemView(View):
 
         return table
 
-    def dispatch_request(self, id):
-        from ..api.images import get_images_with_meta, append_tag_col
+    @staticmethod
+    def remove_sub_ids(data: list[dict]):
+        """
+        remove 'something_id' fields
+        """
+        return [{k: v for k, v in d.items() if "_id" not in k} for d in data]
 
-        # build image meta data
-        images = get_images_with_meta()
-        images = images.filter(self.model.id == id)
+
+    def dispatch_request(self, id):
+        # build items meta data
+        items = get_items_with_meta()
+        items = items.filter(self.model.id == id)
 
         page = request.args.get("page", 1, type=int)
 
-        images_paginate, col_names, images = make_image_pagination(
-            images, page, self.images_per_page
+        items_paginate, col_names, items = make_item_pagination(
+            items, page, self.items_per_page
         )
-        images = append_tag_col(images)
 
-        table = self.make_summary_table(id)
-        name = self.get_item_name(id)
+        items = self.remove_sub_ids(items)
+
+        obj = db.session.get(self.model, id)
+        data = self.schema().dump(obj)
+        table = self.make_summary_table(obj)
+        name = self.infer_name(data)
+
 
         return render_template(
             self.template,
             table=table,
             typename=self.model.__name__,
-            pagination=images_paginate,
-            images_col_names=col_names + ["tags"],
+            pagination=items_paginate,
             name=name,
-            images=images,
+            items=items,
         )
 
 
@@ -102,19 +108,21 @@ class ListView(View):
     template: path to template file
     """
 
-    def __init__(self, model, n_per_page=30):
+    def __init__(self, model, schema, n_per_page=30):
         self.n_per_page = n_per_page
         self.model = model
+        self.schema = schema
         self.name = model.__name__
         self.template = "overview/generic.html"
-        self.curate_fields = [
-            "_sa_instance_state",
-            "sections",
-            "well_row_col_regexp",
-            "site_regexp",
-            "ignore_regexp",
-            "valid_regexp",
-        ]
+        self.exclude_fields = ["timepoints"]
+
+    @staticmethod
+    def fill_missing(data: list[dict], value=None):
+        fields = [[k for k in d] for d in data]
+        fields = list(set([f_ for f in fields for f_ in f]))
+        data = [{k: d.get(k, value) for k in fields} for d in data]
+
+        return data
 
     def dispatch_request(self):
         if "page" in request.args.keys():
@@ -125,16 +133,14 @@ class ListView(View):
             page=page, per_page=self.n_per_page, error_out=False
         )
 
-        columns = self.model.__table__.columns.keys()
-        columns = [c for c in columns if c not in self.curate_fields]
+        data = self.schema(many=True).dump(paginate.items)
         data = [
-            {k: v for k, v in d.__dict__.items() if k not in self.curate_fields}
-            for d in paginate.items
+            {k: v for k, v in d.items() if k not in self.exclude_fields} for d in data
         ]
+        data = self.fill_missing(data)
 
         return render_template(
             self.template,
-            columns=columns,
             data=data,
             pagination=paginate,
             typename=self.name.lower(),

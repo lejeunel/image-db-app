@@ -19,7 +19,6 @@ def get_bucket_client():
 
 def get_pages(client, uri):
     uri = urlparse(uri)
-    path = uri.path
     paginator = client.get_paginator("list_objects_v2")
 
     pages = paginator.paginate(Bucket=uri.netloc, Prefix=uri.path, Delimiter="/")

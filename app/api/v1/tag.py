@@ -6,7 +6,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models.item import ItemTagAssociation, Tag
+from ...models.item import ItemTagAssociation, Tag, TagSchema
 from . import admin_required, check_duplicate
 
 blp = Blueprint(
@@ -15,15 +15,6 @@ blp = Blueprint(
     url_prefix="/api/v1/tag",
     description="Annotation tags",
 )
-
-
-class TagSchema(ma.Schema):
-    class Meta:
-        ordered = True
-
-    id = ma.fields.UUID(dump_only=True)
-    name = ma.fields.String()
-    comment = ma.fields.String()
 
 
 @blp.route("/<uuid:id>")

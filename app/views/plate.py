@@ -4,13 +4,12 @@
 from collections import OrderedDict
 
 import json2table
-from flask import Blueprint, render_template, request, url_for
-from flask.views import View
+from flask import url_for
 
-from ..schema import PlateSchema, SectionSchema
-from ..models import Plate, TimePoint
-from . import make_image_pagination
+from ..models.plate import PlateSchema
+from ..models.section import SectionSchema
 from . import ItemView
+from app import db
 
 
 def make_link_compound(cpd):
@@ -64,21 +63,20 @@ def make_plate_summary(plate):
     Build summary of plate with links to stacks
     """
 
-    res = PlateSchema().dump(plate)
-    res["sections"] = []
+    data = PlateSchema().dump(plate)
+    data["sections"] = []
     for s in plate.sections:
-        res["sections"] += [make_section_summary(s)]
+        data["sections"] += [make_section_summary(s)]
     # sort by section range
-    res["sections"] = sorted(res["sections"], key=lambda d: d["range"])
-    return res
+    data["sections"] = sorted(data["sections"], key=lambda d: d["range"])
+    return data
 
 
 class PlateView(ItemView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def make_summary_table(self, id):
-        plate = self.model.query.get(id)
+    def make_summary_table(self, plate):
         plate_summary = make_plate_summary(plate)
         table = json2table.convert(
             plate_summary,

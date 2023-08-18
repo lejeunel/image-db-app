@@ -2,14 +2,17 @@
 from flask import Flask
 from flask_bootstrap import Bootstrap5
 from flask_flatpages import FlatPages
-from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
+from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_mptt import mptt_sessionmaker
 
-from .utils import datetimeformat, file_type
 from .parser import FlaskParser
+from .reader.s3 import S3Reader
+from .reader.test import TestReader
+from .utils import datetimeformat, file_type
+from .dummy_db import _populate_db
 
 
 # subclass the db manager and insert the wrapper at session creation
@@ -22,6 +25,7 @@ class MPTTSQLAlchemy(SQLAlchemy):
         # Use wrapper from sqlalchemy_mptt that manage tree tables
         return mptt_sessionmaker(Session)
 
+
 app = Flask(__name__, instance_relative_config=False)
 db = MPTTSQLAlchemy()
 parser = FlaskParser()
@@ -32,18 +36,17 @@ pages = FlatPages()
 ma = Marshmallow()
 
 
-
-def register_blueprints(restapi):
+def register_api_blueprints(restapi):
     from .api.v1 import (
-        modality,
-        compound,
-        stack,
-        plate,
-        tag,
-        section,
-        items,
         cell,
+        compound,
         identity,
+        items,
+        modality,
+        plate,
+        section,
+        stack,
+        tag,
     )
 
     restapi.register_blueprint(modality.blp)
@@ -57,51 +60,37 @@ def register_blueprints(restapi):
     restapi.register_blueprint(identity.blp)
 
 
-def create_app(mode="dev"):
-    """
-    Application factory
-    """
+def add_url_views(app):
+    from .views.index import bp as main_bp
 
-    assert mode in ["dev", "prod"]
+    app.register_blueprint(main_bp, url_prefix="/")
 
-    app = Flask(__name__, instance_relative_config=False)
-    if mode == "dev":
-        app.config.from_object("app.config.dev")
-    elif mode == "prod":
-        app.config.from_object("app.config.prod")
-
-    from . import models as mdl
-    from .api.v1 import (
-        cell,
-        compound,
-        modality,
-        plate,
-        section,
-        stack,
-        tag,
-        items,
-        identity,
-    )
+    from .models.cell import Cell, CellSchema
+    from .models.compound import Compound, CompoundSchema
+    from .models.item import Tag, TagSchema
+    from .models.modality import Modality, ModalitySchema
+    from .models.plate import Plate, PlateSchema
+    from .models.section import Section, SectionSchema
+    from .models.stack import Stack, StackSchema
     from .views import ItemView, ListView
-    from .views.image import ImageView
     from .views.plate import PlateView
     from .views.stack import StackView
 
     # Add detail views
     for model, schema in zip(
         [
-            mdl.Modality,
-            mdl.Cell,
-            mdl.Compound,
-            mdl.Tag,
-            mdl.Section,
+            Modality,
+            Cell,
+            Compound,
+            Tag,
+            Section,
         ],
         [
-            modality.ModalitySchema,
-            cell.CellSchema,
-            compound.CompoundSchema,
-            tag.TagSchema,
-            section.SectionSchema,
+            ModalitySchema,
+            CellSchema,
+            CompoundSchema,
+            TagSchema,
+            SectionSchema,
         ],
     ):
         name = model.__name__.lower()
@@ -115,50 +104,80 @@ def create_app(mode="dev"):
     app.add_url_rule(
         f"/plate/detail/<uuid:id>",
         view_func=PlateView.as_view(
-            f"plate_detail", mdl.Plate, plate.PlateSchema, app.config["ITEMS_PER_PAGE"]
+            f"plate_detail", Plate, PlateSchema, app.config["ITEMS_PER_PAGE"]
         ),
     )
     app.add_url_rule(
         f"/stack/detail/<uuid:id>",
         view_func=StackView.as_view(
-            f"stack_detail", mdl.Stack, stack.StackSchema, app.config["ITEMS_PER_PAGE"]
+            f"stack_detail", Stack, StackSchema, app.config["ITEMS_PER_PAGE"]
         ),
     )
     app.add_url_rule(
         "/image/<uuid:id>",
-        view_func=ImageView.as_view(f"image_detail"),
+        view_func=ItemView.as_view(f"image_detail"),
     )
 
     # Add list views
-    for obj in [mdl.Modality, mdl.Cell, mdl.Compound, mdl.Plate, mdl.Stack, mdl.Tag]:
+    for obj, schema in zip(
+        [Modality, Cell, Compound, Plate, Stack, Tag],
+        [
+            ModalitySchema,
+            CellSchema,
+            CompoundSchema,
+            PlateSchema,
+            StackSchema,
+            TagSchema,
+        ],
+    ):
         name = obj.__name__.lower()
         app.add_url_rule(
             f"/{name}/list/".lower(),
             view_func=ListView.as_view(
-                f"{name}_list", obj, app.config["ITEMS_PER_PAGE"]
+                f"{name}_list", obj, schema, app.config["ITEMS_PER_PAGE"]
             ),
         )
 
-    # Set token decoding function for AzureAD
+
+def create_app(mode):
+    """
+    Application factory
+    """
+
+    assert mode in ["test", "dev", "prod"]
+
+    app = Flask(__name__, instance_relative_config=False)
+
+    reader = S3Reader()
+    if mode == "dev":
+        app.config.from_object("app.config.dev")
+    elif mode == "prod":
+        app.config.from_object("app.config.prod")
+    else:
+        app.config.from_object("app.config.test")
+        reader = TestReader()
 
     # set jinja filters
     app.jinja_env.filters["datetimeformat"] = datetimeformat
     app.jinja_env.filters["file_type"] = file_type
     app.jinja_env.filters["zip"] = zip
 
-    from .views.index import bp as main_bp
+    restapi.init_app(app)
+    register_api_blueprints(restapi)
 
-    app.register_blueprint(main_bp, url_prefix="/")
-
-    # register plugins
     db.init_app(app)
     bootstrap.init_app(app)
     migrate.init_app(app, db)
-    restapi.init_app(app)
     pages.init_app(app)
-    parser.init_app(app)
+    parser.init_app(app, reader)
     ma.init_app(app)
 
-    register_blueprints(restapi)
+    add_url_views(app)
+
+    if mode == "test":
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            _populate_db()
 
     return app

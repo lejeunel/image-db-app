@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import json2table
-from flask import render_template, url_for, request
+from flask import url_for
 
-from ..schema import StackSchema
-from ..models import Stack
-from flask.views import View
-from . import make_item_pagination, ItemView
+from ..models.stack import Stack, StackSchema
+from . import ItemView
 
 
 def make_stack_summary(stack):

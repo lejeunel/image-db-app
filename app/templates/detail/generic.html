@@ -16,20 +16,26 @@
             <table class="table table-hover">
             <thead>
                 <tr>
-                  {% for c in images_col_names %}
-                    <th>{{ c }}</th>
+                  {% for c in items[0].keys() %}
+                    {% if c != 'id'%}
+                        <th>{{ c }}</th>
+                    {% endif %}
                   {% endfor %}
                 </tr>
             </thead>
             <tbody>
-            {% for im in images %}
+            {% for item in items %}
             <tr>
-              {% for c in images_col_names %}
-                {% if c == 'key'%}
-                    <td><a href="/image/{{ im['id'] }}">{{ im[c] }}</i></a></td>
-                {% else %}
-                    <td>{{ im[c] }}</td>
+              {% for k, v in item.items() %}
+
+                {% if k != 'id'%}
+                    {% if k == 'uri'%}
+                        <td><a href="/item/{{ item['id'] }}">{{ '...' + v[-20:] }}</i></a></td>
+                    {% else %}
+                        <td>{{ v }}</td>
+                    {% endif %}
                 {% endif %}
+
               {% endfor %}
             </tr>
             {% endfor %}

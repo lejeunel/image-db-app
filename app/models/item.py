@@ -57,6 +57,7 @@ class ItemSchema(ma.SQLAlchemySchema):
         return data
 
 
+
 class Tag(db.Model):
     __tablename__ = "tag"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
@@ -65,6 +66,10 @@ class Tag(db.Model):
 
     def __repr__(self):
         return f"<Tag {self.name}>"
+
+class TagSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Tag
 
 
 class ItemTagAssociation(db.Model):
