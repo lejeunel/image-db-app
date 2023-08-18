@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 from collections import OrderedDict
 
 import json2table
@@ -8,7 +5,7 @@ from flask import url_for
 
 from ..models.plate import PlateSchema
 from ..models.section import SectionSchema
-from . import ItemView
+from . import GenericDetailedView
 from app import db
 
 
@@ -60,19 +57,20 @@ def make_section_summary(section):
 
 def make_plate_summary(plate):
     """
-    Build summary of plate with links to stacks
+    Build summary of plate with links to sections
     """
 
     data = PlateSchema().dump(plate)
     data["sections"] = []
     for s in plate.sections:
         data["sections"] += [make_section_summary(s)]
+
     # sort by section range
     data["sections"] = sorted(data["sections"], key=lambda d: d["range"])
     return data
 
 
-class PlateView(ItemView):
+class PlateView(GenericDetailedView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

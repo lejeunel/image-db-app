@@ -6,7 +6,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db, parser
-from ...exceptions import ParsingException
+from ...exceptions import MyException
 from ...models.plate import Plate
 from ...models.timepoint import TimePoint
 from ...models.item import ItemTagAssociation
@@ -16,7 +16,7 @@ from . import admin_required, check_duplicate
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")
 
-@blp.errorhandler(ParsingException)
+@blp.errorhandler(MyException)
 def parsing_exception(e):
     return jsonify(e.to_dict()), e.status_code
 

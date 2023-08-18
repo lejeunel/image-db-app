@@ -5,32 +5,26 @@ from flask import render_template, request
 from flask.views import View
 from app.api.v1.items import get_items_with_meta
 from app import db
+from app.models.item import ItemSchema
 
 
 def make_item_pagination(items, page, items_per_page):
     # TODO this should use schema
 
     items_paginate = items.paginate(page=page, per_page=items_per_page, error_out=False)
-    items = [dict(im._mapping) for im in items_paginate.items]
+    items = ItemSchema(many=True).dump(items_paginate)
 
     if items:
         # rename keys to only keep file name
         for im in items:
             im["uri"] = im["uri"].split("/")[-1]
-        # we skip some fields
-        col_names = [
-            c
-            for c in items[0].keys()
-            if c not in ["id", "plate_id", "section_id", "stack", "cell", "cell_code"]
-        ]
     else:
         items = []
-        col_names = []
 
-    return items_paginate, col_names, items
+    return items_paginate, items
 
 
-class ItemView(View):
+class GenericDetailedView(View):
     """
     Generic view class that displays details on a given object.
 
@@ -77,7 +71,7 @@ class ItemView(View):
 
         page = request.args.get("page", 1, type=int)
 
-        items_paginate, col_names, items = make_item_pagination(
+        items_paginate, items = make_item_pagination(
             items, page, self.items_per_page
         )
 
@@ -101,11 +95,10 @@ class ItemView(View):
 
 class ListView(View):
     """
-    Generic view class that displays a list of all objects.
+    Generic view class that displays a list of all objects of a given type.
 
-    base: Class that provides a get method to retrieve data as a dict
+    model: Class that provides a get method to retrieve data as a dict
     obj: Class of db object
-    template: path to template file
     """
 
     def __init__(self, model, schema, n_per_page=30):

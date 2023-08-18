@@ -29,7 +29,7 @@ class CompoundProperty(db.Model, BaseNestedSets):
 class Compound(db.Model):
     __tablename__ = "compound"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
-    property_id = db.Column(db.ForeignKey("compound_property.id"), primary_key=True)
+    property_id = db.Column(db.ForeignKey("compound_property.id"))
     name = db.Column(db.String(100))
     bcs = db.Column(db.String(100))
     comment = db.Column(db.Text())

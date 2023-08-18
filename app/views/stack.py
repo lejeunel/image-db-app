@@ -3,7 +3,7 @@ import json2table
 from flask import url_for
 
 from ..models.stack import Stack, StackSchema
-from . import ItemView
+from . import GenericDetailedView
 
 
 def make_stack_summary(stack):
@@ -26,7 +26,7 @@ def make_stack_summary(stack):
     return res
 
 
-class StackView(ItemView):
+class StackView(GenericDetailedView):
     """
     View class that displays details of a Stack.
     """

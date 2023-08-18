@@ -1,15 +1,14 @@
 from app import db
 from sqlalchemy.ext.associationproxy import association_proxy
-from .plate import Plate
-from .item import Item, ItemTagAssociation
-from .stack import StackModalityAssociation
-from .modality import Modality
-from .timepoint import TimePoint
-from .modality import Modality
-from .section import Section
+
 from .cell import Cell
 from .compound import Compound
-from .stack import Stack
+from .item import Item
+from .modality import Modality
+from .plate import Plate
+from .section import Section
+from .stack import Stack, StackModalityAssociation
+from .timepoint import TimePoint
 
 Plate.items = db.relationship("Item")
 Plate.sections = db.relationship("Section")

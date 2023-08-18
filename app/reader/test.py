@@ -29,3 +29,7 @@ class TestReader(BaseReader):
         """
 
         return [item for item in self.items if uri in item]
+
+    def __call__(self, *args, **kwargs):
+        import numpy as np
+        return np.eye(800)

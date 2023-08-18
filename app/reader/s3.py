@@ -4,7 +4,7 @@ import boto3
 from urllib.parse import urlparse
 from pathlib import PurePosixPath
 from .base import BaseReader
-from ..exceptions import ParsingException
+from ..exceptions import ParsingException, DownloadException
 import numpy as np
 from PIL import Image
 from botocore.client import ClientError as BotoClientError
@@ -44,7 +44,12 @@ class S3Reader(BaseReader):
         bucket = uri.netloc
         client = get_bucket_client()
 
-        body = client.get_object(Bucket=bucket, Key=uri.path[1:])["Body"]
+        try:
+            body = client.get_object(Bucket=bucket, Key=uri.path[1:])["Body"]
+        except BotoClientError as e:
+            e = get_aws_error_info(e)
+            raise DownloadException(message=e.message, payload={'operation': e.operation_name})
+
 
         return body
 

@@ -8,6 +8,7 @@ from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_mptt import mptt_sessionmaker
 
+
 from .parser import FlaskParser
 from .reader.s3 import S3Reader
 from .reader.test import TestReader
@@ -37,6 +38,7 @@ ma = Marshmallow()
 
 
 def register_api_blueprints(restapi):
+    from .api.v1 import items
     from .api.v1 import (
         cell,
         compound,
@@ -72,11 +74,13 @@ def add_url_views(app):
     from .models.plate import Plate, PlateSchema
     from .models.section import Section, SectionSchema
     from .models.stack import Stack, StackSchema
-    from .views import ItemView, ListView
+    from .models.item import Item, ItemSchema
+    from .views import GenericDetailedView, ListView
     from .views.plate import PlateView
     from .views.stack import StackView
+    from app.views.remote_item import RemoteItemView
 
-    # Add detail views
+    # Add detailed views
     for model, schema in zip(
         [
             Modality,
@@ -96,7 +100,7 @@ def add_url_views(app):
         name = model.__name__.lower()
         app.add_url_rule(
             f"/{name}/detail/<uuid:id>",
-            view_func=ItemView.as_view(
+            view_func=GenericDetailedView.as_view(
                 f"{name}_detail", model, schema, app.config["ITEMS_PER_PAGE"]
             ),
         )
@@ -115,10 +119,10 @@ def add_url_views(app):
     )
     app.add_url_rule(
         "/image/<uuid:id>",
-        view_func=ItemView.as_view(f"image_detail"),
+        view_func=GenericDetailedView.as_view(f"image_detail"),
     )
 
-    # Add list views
+    # Add basic elements views
     for obj, schema in zip(
         [Modality, Cell, Compound, Plate, Stack, Tag],
         [
@@ -136,6 +140,10 @@ def add_url_views(app):
             view_func=ListView.as_view(
                 f"{name}_list", obj, schema, app.config["ITEMS_PER_PAGE"]
             ),
+        )
+
+        app.add_url_rule(
+            "/item/", view_func=RemoteItemView.as_view("item", Item, ItemSchema)
         )
 
 
