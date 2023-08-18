@@ -7,8 +7,11 @@ from flask_smorest import Blueprint
 
 from ... import db, parser
 from ...exceptions import ParsingException
-from ...models import ItemTagAssociation, Plate, TimePoint
-from ...schema import PlateSchema
+from ...models.plate import Plate
+from ...models.timepoint import TimePoint
+from ...models.item import ItemTagAssociation
+
+from ...models.plate import PlateSchema
 from . import admin_required, check_duplicate
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")

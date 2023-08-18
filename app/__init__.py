@@ -3,6 +3,7 @@ from flask import Flask
 from flask_bootstrap import Bootstrap5
 from flask_flatpages import FlatPages
 from flask_migrate import Migrate
+from flask_marshmallow import Marshmallow
 from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_mptt import mptt_sessionmaker
@@ -28,6 +29,7 @@ migrate = Migrate()
 bootstrap = Bootstrap5()
 restapi = Api()
 pages = FlatPages()
+ma = Marshmallow()
 
 
 
@@ -155,6 +157,7 @@ def create_app(mode="dev"):
     restapi.init_app(app)
     pages.init_app(app)
     parser.init_app(app)
+    ma.init_app(app)
 
     register_blueprints(restapi)
 

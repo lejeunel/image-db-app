@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
-import marshmallow as ma
+from app.models.compound import (Compound, CompoundProperty,
+                                 CompoundPropertySchema, CompoundSchema)
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from ...models import Compound, CompoundProperty
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.schema import CompoundSchema, CompoundPropertySchema
-from app.utils import record_exists
+from . import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
     "Compound", "Compound", url_prefix="/api/v1/compound", description="Chemical compounds"

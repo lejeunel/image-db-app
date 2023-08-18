@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 
-import marshmallow as ma
-from app.schema import SectionSchema
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models import Cell, Compound, Plate, Section, Stack
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.utils import record_exists
+from ...models.cell import Cell
+from ...models.compound import Compound
+from ...models.plate import Plate
+from ...models.section import Section, SectionSchema
+from ...models.stack import Stack
+from . import admin_required
 
 blp = Blueprint(
     "Section",
@@ -76,7 +74,6 @@ class SectionAPI(MethodView):
     def get(self, id):
         """Get section"""
 
-        breakpoint()
         res = record_exists(Section, id)
 
         return res.first()

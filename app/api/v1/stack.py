@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
 
-import marshmallow as ma
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models import Modality, Stack, StackModalityAssociation
-from ...schema import StackSchema
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.utils import record_exists
+from ...models.modality import Modality
+from ...models.stack import Stack, StackModalityAssociation, StackSchema
+from . import admin_required, check_duplicate
 
 blp = Blueprint(
     "Stack",

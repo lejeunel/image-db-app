@@ -53,7 +53,3 @@ def test_delete_unused(client):
     res = client.delete("compound/{}".format(res.json["id"]))
     assert res.status_code == 204
 
-
-def test_get_items(client):
-    res = client.get('items/')
-    breakpoint()

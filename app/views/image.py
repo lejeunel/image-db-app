@@ -4,7 +4,7 @@ from ..models import Item
 from flask import Blueprint, render_template, request, url_for, abort
 import json2table
 from flask.views import View
-from ..schema import ItemsSchema
+from ..schema import ItemSchema
 
 import numpy as np
 import plotly

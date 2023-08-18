@@ -5,8 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from ...models import Cell
-from app.schema import CellSchema
+from ...models.cell import Cell, CellSchema
 from . import (
     admin_required,
     check_dependencies,

@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
-from app.schema import ItemsSchema
+from ...models.item import Item, ItemSchema, Tag, ItemTagAssociation
+from ...models.plate import Plate
+from ...models.cell import Cell
+from ...models.modality import Modality
+from ...models.compound import Compound, CompoundProperty
+from ...models.timepoint import TimePoint
+from ...models.section import Section
+from ...models.stack import Stack, StackModalityAssociation
+
+
 from app.utils import make_records, record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
@@ -8,20 +17,6 @@ from sqlalchemy import func
 from sqlalchemy.sql.elements import literal_column
 
 from ... import db
-from ...models import (
-    Cell,
-    Compound,
-    CompoundProperty,
-    Item,
-    ItemTagAssociation,
-    Modality,
-    Plate,
-    Section,
-    Stack,
-    StackModalityAssociation,
-    Tag,
-    TimePoint,
-)
 
 blp = Blueprint("Items", "Items", url_prefix="/api/v1/items", description="")
 
@@ -67,6 +62,7 @@ def get_items_with_meta():
             Item.col,
             Item.site,
             Item.chan,
+            Plate.id.label("plate_id"),
             Plate.name.label("plate_name"),
             Cell.name.label("cell_name"),
             Cell.code.label("cell_code"),
@@ -79,7 +75,6 @@ def get_items_with_meta():
             TimePoint.time.label("timepoint_time"),
             TimePoint.id.label("timepoint_id"),
             Section.id.label("section_id"),
-            Plate.id.label("plate_id"),
             my_string_agg_fn
         )
         .join(Plate, Plate.id == Item.plate_id)
@@ -116,9 +111,9 @@ def apply_query_args(items, query_args):
 
 @blp.route("/")
 class Items(MethodView):
-    @blp.arguments(ItemsSchema, location="query")
+    @blp.arguments(ItemSchema, location="query")
     @blp.paginate()
-    @blp.response(200, ItemsSchema(many=True))
+    @blp.response(200, ItemSchema(many=True))
     def get(self, args, pagination_parameters):
         """Get items
 
@@ -133,13 +128,13 @@ class Items(MethodView):
             page=pagination_parameters.page, per_page=pagination_parameters.page_size
         ).items
 
-        items = make_records(items, ItemsSchema._declared_fields.keys())
+        items = make_records(items, ItemSchema._declared_fields.keys())
         return items
 
 
 @blp.route("/tag/<tag_name>")
 class ItemTagger(MethodView):
-    @blp.arguments(ItemsSchema, location="query")
+    @blp.arguments(ItemSchema, location="query")
     @blp.paginate()
     @blp.response(200)
     def post(self, args, tag_name, pagination_parameters):
@@ -157,9 +152,9 @@ class ItemTagger(MethodView):
         db.session.commit()
         return ["applied tag {}".format(tag_name)]
 
-    @blp.arguments(ItemsSchema, location="query")
+    @blp.arguments(ItemSchema, location="query")
     @blp.paginate()
-    @blp.response(200, ItemsSchema(many=True))
+    @blp.response(200, ItemSchema(many=True))
     def delete(self, args, tag_name, pagination_parameters):
         """Remove a tag from (set of) items"""
 

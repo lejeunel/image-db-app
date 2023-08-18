@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
 import marshmallow as ma
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models import ItemTagAssociation, Tag
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.utils import record_exists
+from ...models.item import ItemTagAssociation, Tag
+from . import admin_required, check_duplicate
 
 blp = Blueprint(
     "Tag",

@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
 import pytest
-from marshmallow import ValidationError
-from app.config import default as cfg
-from app.models import TimePoint, ItemTagAssociation
-from app import parser
-from app.exceptions import ParsingException
-from unittest.mock import patch
-
 
 existing = {
     "name": "first plate",

@@ -5,7 +5,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from ...models import Modality
+from app.models.modality import Modality, ModalitySchema
 from . import (
     admin_required,
     check_dependencies,
@@ -19,16 +19,6 @@ blp = Blueprint(
     url_prefix="/api/v1/modality",
     description="Item modality",
 )
-
-
-class ModalitySchema(ma.Schema):
-    class Meta:
-        ordered = True
-
-    id = ma.fields.UUID(dump_only=True)
-    name = ma.fields.String()
-    target = ma.fields.String()
-    comment = ma.fields.String()
 
 
 @blp.route("/<uuid:id>")

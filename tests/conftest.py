@@ -2,7 +2,6 @@
 
 from urllib.parse import urlparse
 import pytest
-from app.models import ItemTagAssociation
 from app.reader.base import BaseReader
 from app.exceptions import ParsingException
 from flask import testing
@@ -58,17 +57,19 @@ class CustomClient(testing.FlaskClient):
 
 @pytest.fixture()
 def app():
-    from app import db, restapi, parser, register_blueprints
+    from app import db, restapi, parser, register_blueprints, ma
 
     app = Flask(__name__, instance_relative_config=False)
 
     app.config.from_object("app.config.test")
     with app.app_context():
         db.init_app(app)
-        db.create_all()
+        ma.init_app(app)
         restapi.init_app(app)
         register_blueprints(restapi)
         parser.init_app(app, TestReader())
+
+        db.create_all()
         app.test_client_class = CustomClient
 
         yield app
@@ -87,19 +88,14 @@ def client(app):
 @pytest.fixture(autouse=True)
 def populate_db(app):
     from app import db, parser
-    from app.models import (
-        Modality,
-        Plate,
-        Section,
-        Tag,
-        Cell,
-        Compound,
-        Stack,
-        Item,
-        TimePoint,
-        StackModalityAssociation,
-        CompoundProperty
-    )
+    from app.models.plate import Plate
+    from app.models.modality import Modality
+    from app.models.cell import Cell
+    from app.models.compound import Compound, CompoundProperty
+    from app.models.section import Section
+    from app.models.timepoint import TimePoint
+    from app.models.item import Tag, ItemTagAssociation
+    from app.models.stack import Stack, StackModalityAssociation
 
     modalities = [
         Modality(name=n, target=t)
