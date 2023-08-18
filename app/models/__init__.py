@@ -39,9 +39,6 @@ Item.tags = association_proxy("item_tag_assoc", "tag")
 TimePoint.plate = db.relationship(
     "Plate", back_populates="timepoints", foreign_keys=[TimePoint.plate_id]
 )
-TimePoint.items = db.relationship(
-    "Item", back_populates="timepoint", foreign_keys=Item.timepoint_id
-)
 
 
 Section.plate = db.relationship(
@@ -59,10 +56,6 @@ Section.stack = db.relationship(
 
 Stack.modalities = association_proxy("stack_modality_assoc", "modality")
 Stack.channels = association_proxy("stack_modality_assoc", "chan")
-
-Stack.sections = db.relationship(
-    "Section", back_populates="stack", foreign_keys="Section.stack_id"
-)
 
 StackModalityAssociation.stack = db.relationship(
     Stack,

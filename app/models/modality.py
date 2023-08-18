@@ -1,7 +1,8 @@
+import uuid
+
 from app import db, ma
 from sqlalchemy_utils.types.uuid import UUIDType
-import uuid
-from sqlalchemy.ext.associationproxy import association_proxy
+
 
 class Modality(db.Model):
     __tablename__ = "modality"

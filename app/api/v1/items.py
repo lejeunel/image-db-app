@@ -78,7 +78,7 @@ def get_items_with_meta():
             my_string_agg_fn
         )
         .join(Plate, Plate.id == Item.plate_id)
-        .join(TimePoint, TimePoint.id == Item.timepoint_id)
+        .join(TimePoint, Plate.id == TimePoint.plate_id)
         .join(Section, Plate.id == Section.plate_id)
         .join(Cell, Cell.id == Section.cell_id)
         .join(Stack, Stack.id == Section.stack_id)

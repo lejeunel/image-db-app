@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 
 
 def test_update_section(client):

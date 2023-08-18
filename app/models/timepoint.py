@@ -1,7 +1,9 @@
-from app import db, ma
 import uuid
+
+from app import db, ma
 from sqlalchemy import func
 from sqlalchemy_utils.types.uuid import UUIDType
+
 
 class TimePoint(db.Model):
     __tablename__ = "timepoint"

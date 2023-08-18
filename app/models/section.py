@@ -1,11 +1,14 @@
+import uuid
+
 from app import db, ma
-from app.utils import record_exists
 from app.models.compound import Compound
 from app.models.stack import Stack
+from app.utils import record_exists
+from marshmallow import post_dump, post_load, pre_load
 from sqlalchemy_utils.types.uuid import UUIDType
-import uuid
-from marshmallow import post_dump, post_load, pre_load, pre_dump
+
 from .cell import Cell
+
 
 class Section(db.Model):
     """
