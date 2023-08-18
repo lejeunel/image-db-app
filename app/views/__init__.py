@@ -32,7 +32,7 @@ class GenericDetailedView(View):
     template: path to template file
     """
 
-    def __init__(self, model, schema, items_per_page):
+    def __init__(self, model, schema, items_per_page=20):
         self.model = model
         self.schema = schema
         self.items_per_page = items_per_page

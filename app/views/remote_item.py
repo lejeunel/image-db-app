@@ -9,28 +9,30 @@ import plotly
 import plotly.express as px
 from app.api.v1.items import get_items_with_meta
 from flask import render_template
+from flask.views import View
 
+from ..models.item import ItemSchema
 from ..reader.base import BaseReader
-from . import GenericDetailedView
 
 
-class RemoteItemView(GenericDetailedView):
+class RemoteItemView(View):
     """
     View class that displays a remote data item
     """
 
-    def __init__(self, reader: BaseReader, *args, **kwargs):
+    def __init__(self, reader: BaseReader, items_per_page=20):
         self.reader = reader
-        super().__init__(*args, **kwargs)
 
     @staticmethod
     def image_to_json(image: np.ndarray, width=800, height=800):
+        # TODO this is quite slow... even locally
         fig = px.imshow(image, contrast_rescaling='minmax')
         fig.update_xaxes(showticklabels=False).update_yaxes(showticklabels=False)
         fig.update_layout(width=width, height=height)
-        fig.show()
+        # fig.show()
 
         json_image = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        return json_image
 
     @staticmethod
     def guess_type(uri: str) -> str:
@@ -45,7 +47,7 @@ class RemoteItemView(GenericDetailedView):
 
         q = get_items_with_meta()
         item = q.filter(Item.id == id).first()
-        meta_data = self.schema().dump(item)
+        meta_data = ItemSchema().dump(item)
         meta_table = json2table.convert(
             meta_data,
             build_direction="LEFT_TO_RIGHT",
@@ -55,14 +57,16 @@ class RemoteItemView(GenericDetailedView):
             },
         )
 
-        item = self.reader(item.uri)
+        content = self.reader(item.uri)
         type_ = self.guess_type(item.uri)
+
         kwargs = {}
         if type_ == 'image':
-            kwargs['json_image'] = self.image_to_json(item)
+            kwargs['graph_json'] = self.image_to_json(content)
 
+        breakpoint()
         return render_template(
-            "detail/image.html",
+            "detail/item.html",
             table=meta_table,
             **kwargs
         )

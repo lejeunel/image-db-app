@@ -62,7 +62,7 @@ def register_api_blueprints(restapi):
     restapi.register_blueprint(identity.blp)
 
 
-def add_url_views(app):
+def add_url_views(app, reader=None):
     from .views.index import bp as main_bp
 
     app.register_blueprint(main_bp, url_prefix="/")
@@ -74,7 +74,6 @@ def add_url_views(app):
     from .models.plate import Plate, PlateSchema
     from .models.section import Section, SectionSchema
     from .models.stack import Stack, StackSchema
-    from .models.item import Item, ItemSchema
     from .views import GenericDetailedView, ListView
     from .views.plate import PlateView
     from .views.stack import StackView
@@ -117,10 +116,6 @@ def add_url_views(app):
             f"stack_detail", Stack, StackSchema, app.config["ITEMS_PER_PAGE"]
         ),
     )
-    app.add_url_rule(
-        "/image/<uuid:id>",
-        view_func=GenericDetailedView.as_view(f"image_detail"),
-    )
 
     # Add basic elements views
     for obj, schema in zip(
@@ -142,9 +137,9 @@ def add_url_views(app):
             ),
         )
 
-        app.add_url_rule(
-            "/item/", view_func=RemoteItemView.as_view("item", Item, ItemSchema)
-        )
+    app.add_url_rule(
+        "/item/<uuid:id>", view_func=RemoteItemView.as_view("item", reader, app.config['ITEMS_PER_PAGE'])
+    )
 
 
 def create_app(mode):
@@ -180,7 +175,7 @@ def create_app(mode):
     parser.init_app(app, reader)
     ma.init_app(app)
 
-    add_url_views(app)
+    add_url_views(app, reader)
 
     if mode == "test":
         with app.app_context():

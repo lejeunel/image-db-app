@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
 
-from flask import (
-    Blueprint,
-    Markup,
-    flash,
-    session,
-    redirect,
-    render_template,
-    render_template_string,
-    request,
-    url_for,
-)
+from flask import (Blueprint, Markup, flash, redirect, render_template,
+                   render_template_string, request, session, url_for)
+from flask_flatpages import pygments_style_defs
 
 from .. import pages
-from flask_flatpages import pygments_style_defs, pygmented_markdown
-from flask.views import View
-from ..config import default as cfg
-import msal
 
 bp = Blueprint("index", __name__, template_folder="templates", static_folder="static")
 

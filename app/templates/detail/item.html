@@ -1,9 +1,9 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Image Preview {% endblock %}
+{% block title %}Item Preview {% endblock %}
 
 {% block content %}
-<h1>Image Preview</h1>
+<h1>Item Preview</h1>
 
 <div class="container">
   <div class="row">
@@ -11,7 +11,7 @@
       {{ table | safe }}
     </div>
     <div class="col">
-      <div id="image" class="image"></div>
+      <div id="item" class="item"></div>
     </div>
   </div>
 </div>
@@ -21,10 +21,12 @@
 
 {% block scripts %}
 
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script type="text/javascript">
-    var graphs = {{graphJSON | safe}};
-    Plotly.plot('image',graphs,{});        
-</script>
+{% if graph_json %}
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script type="text/javascript">
+      var graphs = {{graph_json | safe}};
+      Plotly.plot('item',graphs,{});        
+  </script>
+{% endif %}
 
 {% endblock %}
