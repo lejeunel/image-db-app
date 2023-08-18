@@ -2,6 +2,7 @@ import uuid
 
 from app import db, ma
 from app.models.compound import CompoundProperty
+from .utils import _concat_properties
 from marshmallow import post_dump
 from sqlalchemy_utils.types.uuid import UUIDType
 
@@ -22,7 +23,6 @@ class Item(db.Model):
     timepoint_id = db.Column(db.ForeignKey("timepoint.id"))
 
 
-
 class ItemSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Item
@@ -34,7 +34,6 @@ class ItemSchema(ma.SQLAlchemySchema):
     site = ma.auto_field()
     chan = ma.auto_field()
     plate_id = ma.auto_field()
-
 
     plate_name = ma.String()
     cell_name = ma.String()
@@ -51,21 +50,10 @@ class ItemSchema(ma.SQLAlchemySchema):
     tags = ma.String()
 
     @post_dump()
-    def concat_compound_props(
-        self, data, prefix="compound_", id_field="compound_property_id", **kwargs
-    ):
-        # get properties of all ancestors
-        properties = (
-            db.session.get(CompoundProperty, data["compound_property_id"])
-            .path_to_root()
-            .all()
+    def concat_compound_props(self, data, **kwargs):
+        data = _concat_properties(
+            db, CompoundProperty, data, prefix="compound_", id_field="compound_property_id", **kwargs
         )
-        properties = [(p.type._name_, p.name) for p in properties]
-
-        # convert to dict and concatenate prefix
-        properties = {prefix + f"{p[0]}": p[1] for p in properties}
-
-        data = {**data, **properties}
         return data
 
 

@@ -124,4 +124,5 @@ class CompoundPropertyAPI(MethodView):
         db.session.add(prop)
         db.session.commit()
 
+
         return prop

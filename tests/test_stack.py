@@ -22,19 +22,19 @@ def test_association_update(client):
         "stack/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
-    assert res.status_code == 200
+    assert res == 200
 
 
 def test_delete_used(client):
     item = client.get("stack/").json[0]
     res = client.delete("stack/{}".format(item["id"]))
-    assert res.status_code == 424
+    assert res == 424
 
 
 def test_delete_unused(client):
     res = client.post("stack/", json=new)
     res = client.delete("stack/{}".format(res.json["id"]))
-    assert res.status_code == 204
+    assert res == 204
 
 
 def test_update(client):
@@ -46,7 +46,7 @@ def test_update(client):
         "stack/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
-    assert res.status_code == 200
+    assert res == 200
     assert res.json["name"] == "updated_name"
 
 def test_add_channel(client):
@@ -59,13 +59,13 @@ def test_add_channel(client):
         json={"modalities": ["modality_0", "modality_1", "modality_2", "modality_3"],
               "channels": [1, 2, 3, 4]}
     )
-    assert res.status_code == 200
+    assert res == 200
 
 
 def test_create(client):
 
     res = client.post("stack/", json=new)
-    assert res.status_code == 201
+    assert res == 201
 
 
 def test_create_duplicate(client):
@@ -73,4 +73,4 @@ def test_create_duplicate(client):
     dup = dict(new)
     dup["name"] = "stack_0"
     res = client.post("stack/", json=dup)
-    assert res.status_code == 424
+    assert res == 424

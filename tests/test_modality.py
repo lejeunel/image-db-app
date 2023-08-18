@@ -12,7 +12,7 @@ def test_update(client):
         "modality/{}".format(item['id']),
         json={"name": "updated_name"},
     )
-    assert res.status_code == 200
+    assert res == 200
     assert res.json['name'] == 'updated_name'
 
 
@@ -21,18 +21,18 @@ def test_delete_unused(client):
         "modality/", json=new_modality
     )
     res = client.delete("modality/{}".format(res.json["id"]))
-    assert res.status_code == 204
+    assert res == 204
 
 
 def test_delete_used(client):
     item = client.get("modality/").json[0]
     res = client.delete("modality/{}".format(item['id']))
-    assert res.status_code == 424
+    assert res == 424
 
 
 def test_get(client):
     res = client.get("modality/")
-    assert res.status_code == 200
+    assert res == 200
 
 
 def test_create(client):
@@ -40,7 +40,7 @@ def test_create(client):
     res = client.post(
         "modality/", json=new_modality
     )
-    assert res.status_code == 201
+    assert res == 201
 
 
 def test_create_duplicate(client):
@@ -50,6 +50,6 @@ def test_create_duplicate(client):
     res = client.post(
         "modality/", json=dup_modality
     )
-    assert res.status_code == 424
+    assert res == 424
 
 

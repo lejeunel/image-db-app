@@ -95,20 +95,20 @@ def populate_db(app):
     db.session.add_all(modalities)
 
 
-    db.session.add(CompoundProperty(name="g1", type="moa_group"))  # root node
-    db.session.add(CompoundProperty(name="g2", type="moa_group"))  # root node
+    db.session.add(CompoundProperty(value="g1", type="moa_group"))  # root node
+    db.session.add(CompoundProperty(value="g2", type="moa_group"))  # root node
     db.session.add_all(  # first level
         [
-            CompoundProperty(name="sg3", parent_id=1, type="moa_subgroup"),
-            CompoundProperty(name="sg4", parent_id=1, type="moa_subgroup"),
-            CompoundProperty(name="sg5", parent_id=2, type="moa_subgroup"),
+            CompoundProperty(value="sg3", parent_id=1, type="moa_subgroup"),
+            CompoundProperty(value="sg4", parent_id=1, type="moa_subgroup"),
+            CompoundProperty(value="sg5", parent_id=2, type="moa_subgroup"),
         ]
     )
     db.session.add_all(  # second level
         [
-            CompoundProperty(name="t6", parent_id=5, type="target"),
-            CompoundProperty(name="t7", parent_id=4, type="target"),
-            CompoundProperty(name="t8", parent_id=3, type="target"),
+            CompoundProperty(value="t6", parent_id=5, type="target"),
+            CompoundProperty(value="t7", parent_id=4, type="target"),
+            CompoundProperty(value="t8", parent_id=3, type="target"),
         ]
     )
     db.session.commit()

@@ -17,7 +17,7 @@ existing = {
 def test_create(client, name, base_uri, expected_status):
     data = {'name': name, 'timepoints': [{'uri': base_uri}]}
     res = client.post("plate/", json=data)
-    assert res.status_code == expected_status
+    assert res == expected_status
 
 
 def test_update(client):
@@ -26,7 +26,7 @@ def test_update(client):
     id = client.get("plate/").json[0]["id"]
     res = client.put(f"plate/{id}", json=data)
 
-    assert res.status_code == 200
+    assert res == 200
     assert res.json["name"] == "new name"
 
 def test_delete(client):

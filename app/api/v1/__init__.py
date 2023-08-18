@@ -38,17 +38,6 @@ def check_duplicate(session, model, **kwargs):
         )
 
 
-def get_or_create(session, model, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
-    if instance:
-        return instance
-    else:
-        instance = model(**kwargs)
-        session.add(instance)
-        session.commit()
-        return instance
-
-
 def get_user_profile(request):
     """
     Retrieve information about the user from Ocelot's header

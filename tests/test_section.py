@@ -9,7 +9,7 @@ def test_update_section(client):
     res = client.put(
         f"section/{id}", json={"compound_name": "compound_0"}
     )
-    assert res.status_code == 200
+    assert res == 200
     assert res.json["compound_name"] == "compound_0"
 
 
@@ -22,7 +22,7 @@ def test_update_wrong_id(client):
         "section/{}".format(item["id"] + "asdf"),
         json={"compound_name": "Tebuconazole"},
     )
-    assert res.status_code == 404
+    assert res == 404
 
 
 def test_create_section(client):
@@ -36,7 +36,7 @@ def test_create_section(client):
     section.pop('id')
 
     res = client.post(f"plate/{plate_id}/sections", json=section)
-    assert res.status_code == 201
+    assert res == 201
 
 
 def test_create_overlap(client):
@@ -51,7 +51,7 @@ def test_create_overlap(client):
     section.pop('id')
 
     res = client.post(f"plate/{plate_id}/sections", json=section)
-    assert res.status_code == 409
+    assert res == 409
 
 
 def test_create_out_range(client):
@@ -66,7 +66,7 @@ def test_create_out_range(client):
     section.pop('id')
 
     res = client.post(f"plate/{plate_id}/sections", json=section)
-    assert res.status_code == 409
+    assert res == 409
 
 
 def test_delete(client):
@@ -75,7 +75,7 @@ def test_delete(client):
     id = section["id"]
 
     res = client.delete(f"section/{id}")
-    assert res.status_code == 204
+    assert res == 204
 
 
 def test_update_not_exists(client):
@@ -90,4 +90,4 @@ def test_update_not_exists(client):
         f"section/{id}",
         json={"compound_name": "asdf"},
     )
-    assert res.status_code == 404
+    assert res == 404
