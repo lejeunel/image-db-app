@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from app.models.compound import (Compound, CompoundProperty,
                                  CompoundPropertySchema, CompoundSchema)
 from app.utils import record_exists

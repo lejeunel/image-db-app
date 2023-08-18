@@ -31,13 +31,13 @@ class TestReader(BaseReader):
     @validate_uri()
     def list(self, uri) -> list[str]:
         """
-        Return all times at uri
+        Return all items at uri
         """
 
         return [item for item in self.items if uri in item]
 
 
-class CustomClient(testing.FlaskClient):
+class TestClient(testing.FlaskClient):
     def open(self, *args, **kwargs):
         args = ("/api/v1/" + args[0],)
         return super().open(*args, **kwargs)
@@ -58,7 +58,7 @@ def app():
         parser.init_app(app, TestReader())
 
         db.create_all()
-        app.test_client_class = CustomClient
+        app.test_client_class = TestClient
 
         yield app
 

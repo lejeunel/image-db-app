@@ -5,7 +5,8 @@ from flask import jsonify, make_response, request, current_app
 from flask_smorest import abort
 
 
-def check_dependencies(model, value, field, remote):
+def check_dependencies(model, value, field:str, remote:str):
+
     item = model.query.filter_by(**{field: value}).first()
 
     if len(getattr(item, remote)) > 0:
@@ -18,6 +19,15 @@ def check_dependencies(model, value, field, remote):
 
 
 def check_duplicate(session, model, **kwargs):
+    """Abort if DB contains a specified element
+
+    Parameters
+    ----------
+    session : SQLAlchemy session
+    model : SQLAlchemy ORM object
+    **kwargs: Specifies fields and values used for filtering
+    """
+
     instance = session.query(model).filter_by(**kwargs).first()
     if instance is not None:
         abort(
