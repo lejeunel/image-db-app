@@ -169,10 +169,6 @@ class ItemTagger(MethodView):
         item_ids = [i.id for i in items]
         assocs = ItemTagAssociation.query.filter(
             ItemTagAssociation.item_id.in_(item_ids)
-        ).filter(ItemTagAssociation.tag_id == tag_id)
-        n_tags = 0
+        ).filter(ItemTagAssociation.tag_id == tag_id).delete()
 
-        for a in assocs:
-            db.session.delete(a)
-            n_tags += 1
         db.session.commit()

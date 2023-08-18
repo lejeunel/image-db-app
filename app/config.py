@@ -30,7 +30,7 @@ class Config:
 
     ITEMS_PER_PAGE = 20
 
-    # Default regular expression for parsing image files
+    # Default regular expression for parsing files
     ADDITIONAL_REGEXP = {
         "row": r"^.*_([A-Z])[0-9][0-9]_.*$",
         "col": r"^.*_[A-Z]([0-9][0-9])_.*$",
