@@ -103,6 +103,7 @@ def get_items_with_meta():
 
 
 def apply_query_args(items, query_args):
+    # TODO use nested set logic to filter
     for k, v in query_args.items():
         attr = field_to_attr[k]
         items = items.filter(attr == v)

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-from urllib.parse import urlparse
 import pytest
-from app.reader.base import BaseReader
-from app.exceptions import ParsingException
+from app.reader.base import BaseReader, validate_uri
 from flask import testing
 from flask import Flask
 
@@ -28,23 +26,13 @@ class TestReader(BaseReader):
             for chan in range(1, 4)
             for site in range(2)
         ]
+        self.allowed_schemes = ['scheme']
 
+    @validate_uri()
     def list(self, uri) -> list[str]:
         """
         Return all times at uri
         """
-        scheme = urlparse(uri).scheme
-        if scheme != "scheme":
-            raise ParsingException(
-                message=f"Provided scheme {scheme} not supported",
-                payload={"operation": "list location"},
-            )
-
-        if uri[-1] != "/":
-            raise ParsingException(
-                message="Provided URI must end with '/'",
-                payload={"operation": "list location"},
-            )
 
         return [item for item in self.items if uri in item]
 

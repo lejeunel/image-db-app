@@ -62,7 +62,8 @@ class Config:
 
 class ConfigTest(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+    # in-memory
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
 
 
 default = Config()

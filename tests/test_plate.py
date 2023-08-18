@@ -11,7 +11,8 @@ existing = {
     "name,base_uri,expected_status", [("new plate", "scheme://project/exp3/tp1/", 201),
                                       ("first plate", "scheme://project/exp3/tp1/", 424),
                                       ("new plate", "scheme://project/exp1/tp1/", 424),
-                                      ('new plate', "badscheme://project/exp1/tp1/", 400)]
+                                      ('new plate', "badscheme://project/exp1/tp1/", 400),
+                                      ('new plate', "badscheme://project/exp1/tp1", 400)]
 )
 def test_create(client, name, base_uri, expected_status):
     data = {'name': name, 'timepoints': [{'uri': base_uri}]}
