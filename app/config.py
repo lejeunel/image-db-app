@@ -14,6 +14,9 @@ class Config:
     DB_PW = config("DB_PW")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # suppress strange warning
+    SQLALCHEMY_ENGINE_OPTIONS = {'enable_from_linting':False}
+
     SWAGGER_UI_DOC_EXPANSION = "list"
 
     # Api documentation
