@@ -1,4 +1,5 @@
 from decouple import config
+import os
 
 
 class Config:
@@ -12,6 +13,7 @@ class Config:
     DB_HOST = config("DB_HOST")
     DB_PW = config("DB_PW")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     SWAGGER_UI_DOC_EXPANSION = "list"
 
     # Api documentation
@@ -26,10 +28,12 @@ class Config:
     ITEMS_PER_PAGE = 20
 
     # Default regular expression for parsing image files
-    ADDITIONAL_REGEXP = {'row': r"^.*_([A-Z])[0-9][0-9]_.*$",
-                         'col': r"^.*_[A-Z]([0-9][0-9])_.*$",
-                         'site': r"^.*_s([0-9]?[0-9])_.*$",
-                         'chan': r"^.*_w([0-9]?[0-9])_.*$"}
+    ADDITIONAL_REGEXP = {
+        "row": r"^.*_([A-Z])[0-9][0-9]_.*$",
+        "col": r"^.*_[A-Z]([0-9][0-9])_.*$",
+        "site": r"^.*_s([0-9]?[0-9])_.*$",
+        "chan": r"^.*_w([0-9]?[0-9])_.*$",
+    }
     IGNORE_REGEXP = r"^.*_thumb.*$"
     VALID_REGEXP = r"^.*\.tiff?$"
 

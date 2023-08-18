@@ -56,7 +56,7 @@ class ItemSchema(ma.SQLAlchemySchema):
     ):
         # get properties of all ancestors
         properties = (
-            CompoundProperty.query.get(data["compound_property_id"])
+            db.session.get(CompoundProperty, data["compound_property_id"])
             .path_to_root()
             .all()
         )

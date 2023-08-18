@@ -63,9 +63,13 @@ StackModalityAssociation.stack = db.relationship(
     foreign_keys=[StackModalityAssociation.stack_id],
 )
 StackModalityAssociation.modality = db.relationship(
-    "Modality", foreign_keys=[StackModalityAssociation.modality_id]
+    "Modality",
+    back_populates="stack_modality_assoc",
+    foreign_keys=[StackModalityAssociation.modality_id],
 )
 
 
-Compound.props = db.relationship("CompoundProperty", foreign_keys=[Compound.property_id])
+Compound.props = db.relationship(
+    "CompoundProperty", foreign_keys=[Compound.property_id]
+)
 Modality.stacks = association_proxy("stack_modality_assoc", "stack")

@@ -1810,12 +1810,17 @@ version = "0.2.5"
 description = "SQLAlchemy MPTT mixins (Nested Sets)"
 optional = false
 python-versions = "*"
-files = [
-    {file = "sqlalchemy_mptt-0.2.5.tar.gz", hash = "sha256:d6e62dc0237b9e7aea509f0f7fb138d8fe1527ab6ad741e428e5647a5d83af35"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 SQLAlchemy = ">=1.0.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/lowatt/sqlalchemy_mptt"
+reference = "41c49b4c9d95a81c854de2836a511a3c9ccc0019"
+resolved_reference = "41c49b4c9d95a81c854de2836a511a3c9ccc0019"
 
 [[package]]
 name = "sqlalchemy-utils"
@@ -2088,4 +2093,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "58861986ccb2ef6c5524e0e6b8929b60cdbdd09e25f447f71d4b8ca4b5c060fd"
+content-hash = "115877699bda3fb2cc7b73ed4da6886fe01897765b5ce05589213e9a38339e61"

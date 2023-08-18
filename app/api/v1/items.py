@@ -78,7 +78,7 @@ def get_items_with_meta():
             my_string_agg_fn
         )
         .join(Plate, Plate.id == Item.plate_id)
-        .join(TimePoint, Plate.id == TimePoint.plate_id)
+        .join(TimePoint, TimePoint.id == Item.timepoint_id)
         .join(Section, Plate.id == Section.plate_id)
         .join(Cell, Cell.id == Section.cell_id)
         .join(Stack, Stack.id == Section.stack_id)
@@ -146,6 +146,7 @@ class ItemTagger(MethodView):
         items = get_items_with_meta()
         items = apply_query_args(items, args).all()
 
+        pagination_parameters.item_count = len(items)
         assocs = [ItemTagAssociation(item_id=i.id, tag_id=id) for i in items]
 
         db.session.add_all(assocs)
@@ -163,6 +164,8 @@ class ItemTagger(MethodView):
 
         items = get_items_with_meta()
         items = apply_query_args(items, args)
+        pagination_parameters.item_count = items.count()
+
         item_ids = [i.id for i in items]
         assocs = ItemTagAssociation.query.filter(
             ItemTagAssociation.item_id.in_(item_ids)
