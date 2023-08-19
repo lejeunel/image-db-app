@@ -70,7 +70,7 @@ def make_plate_summary(plate):
     return data
 
 
-class PlateView(GenericDetailedView):
+class DetailedPlateView(GenericDetailedView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

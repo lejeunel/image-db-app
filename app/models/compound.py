@@ -43,6 +43,7 @@ class CompoundSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Compound
 
+    additional = ('compound_moa_group', 'compound_moa_subgroup', 'compound_target')
     property_id = ma.Int(required=False)
 
     @post_dump()

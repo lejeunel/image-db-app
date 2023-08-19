@@ -28,7 +28,9 @@ class Config:
     OPENAPI_SWAGGER_UI_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/"
     OPENAPI_REDOC_PATH = "redoc"
 
-    ITEMS_PER_PAGE = 20
+    VIEWS_ITEMS_PER_PAGE = 20
+    API_ITEMS_PAGE_SIZE = 100
+    API_ITEMS_MAX_PAGE_SIZE = 300
 
     # Default regular expression for parsing files
     ADDITIONAL_REGEXP = {
@@ -64,7 +66,8 @@ class ConfigTest(Config):
     TESTING = True
     # in-memory
     SQLALCHEMY_DATABASE_URI = "sqlite://"
-    DEFAULT_PAGINATION_PARAMETERS = {"page": 1, "page_size": 100000, "max_page_size": 1000000}
+    API_ITEMS_PAGE_SIZE = 10000
+    API_ITEMS_MAX_PAGE_SIZE = 10000
 
 
 default = Config()

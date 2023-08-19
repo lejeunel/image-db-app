@@ -9,7 +9,6 @@ from app.models.item import ItemSchema
 
 
 def make_item_pagination(items, page, items_per_page):
-
     items_paginate = items.paginate(page=page, per_page=items_per_page, error_out=False)
     items = ItemSchema(many=True).dump(items_paginate)
 
@@ -62,7 +61,6 @@ class GenericDetailedView(View):
         """
         return [{k: v for k, v in d.items() if "_id" not in k} for d in data]
 
-
     def dispatch_request(self, id):
         # build items meta data
         items = get_items_with_meta()
@@ -70,9 +68,7 @@ class GenericDetailedView(View):
 
         page = request.args.get("page", 1, type=int)
 
-        items_paginate, items = make_item_pagination(
-            items, page, self.items_per_page
-        )
+        items_paginate, items = make_item_pagination(items, page, self.items_per_page)
 
         items = self.remove_sub_ids(items)
 
@@ -80,7 +76,6 @@ class GenericDetailedView(View):
         data = self.schema().dump(obj)
         table = self.make_summary_table(obj)
         name = self.infer_name(data)
-
 
         return render_template(
             self.template,
@@ -106,15 +101,17 @@ class ListView(View):
         self.schema = schema
         self.name = model.__name__
         self.template = "overview/generic.html"
-        self.exclude_fields = ["timepoints"]
+        self.exclude_fields = ["timepoints", 'property_id']
 
     @staticmethod
-    def fill_missing(data: list[dict], value=None):
-        fields = [[k for k in d] for d in data]
-        fields = list(set([f_ for f in fields for f_ in f]))
-        data = [{k: d.get(k, value) for k in fields} for d in data]
+    def get_columns(data: list[dict]):
+        """
+        infer from a set of records the "fields", i.e.
+        the set of dictionary keys of records without missing values
+        """
 
-        return data
+        data_ = sorted(data, key=lambda d: len(d))
+        return data_[-1].keys()
 
     def dispatch_request(self):
         if "page" in request.args.keys():
@@ -126,14 +123,13 @@ class ListView(View):
         )
 
         data = self.schema(many=True).dump(paginate.items)
-        data = [
-            {k: v for k, v in d.items() if k not in self.exclude_fields} for d in data
-        ]
-        data = self.fill_missing(data)
+        columns = self.get_columns(data)
+        columns = [c for c in columns if c not in self.exclude_fields]
 
         return render_template(
             self.template,
             data=data,
+            columns=columns,
             pagination=paginate,
             typename=self.name.lower(),
             fullname=self.name,

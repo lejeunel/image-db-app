@@ -12,7 +12,7 @@ from ...models.stack import Stack, StackModalityAssociation
 
 from app.utils import record_exists
 from flask.views import MethodView
-from app.api import Blueprint
+from flask_smorest import Blueprint
 from sqlalchemy import func
 from sqlalchemy.sql.elements import literal_column
 from sqlalchemy import text
@@ -22,6 +22,11 @@ from ... import db
 
 
 blp = Blueprint("Items", "Items", url_prefix="/api/v1/items", description="")
+blp.DEFAULT_PAGINATION_PARAMETERS = {
+    "page": 1,
+    "page_size": current_app.config["API_ITEMS_PAGE_SIZE"],
+    "max_page_size": current_app.config["API_ITEMS_MAX_PAGE_SIZE"],
+}
 
 
 def get_items_with_meta():

@@ -3,7 +3,7 @@
 import marshmallow as ma
 from app.utils import record_exists
 from flask.views import MethodView
-from app.api import Blueprint
+from flask_smorest import Blueprint
 from flask_smorest import abort
 
 from ... import db

@@ -2,7 +2,7 @@
 
 import marshmallow as ma
 from flask.views import MethodView
-from app.api import Blueprint
+from flask_smorest import Blueprint
 
 from ... import db
 from app.models.modality import Modality, ModalitySchema

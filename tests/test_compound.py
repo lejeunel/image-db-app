@@ -54,6 +54,10 @@ def test_delete_unused(client):
     assert res == 204
 
 
+def test_get_compound_properties(client):
+    res = client.get("compound/prop/")
+    assert res == 200
+
 def test_create_compound_properties_wrong_type(client):
     res = client.post(
         "compound/prop/", json={"type": "wrong_type", "value": "the value"}

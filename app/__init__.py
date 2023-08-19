@@ -8,12 +8,11 @@ from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_mptt import mptt_sessionmaker
 
-
+from .dummy_db import _populate_db
 from .parser import FlaskParser
 from .reader.s3 import S3Reader
 from .reader.test import TestReader
 from .utils import datetimeformat, file_type
-from .dummy_db import _populate_db
 
 
 # subclass the db manager and insert the wrapper at session creation
@@ -37,35 +36,29 @@ pages = FlatPages()
 ma = Marshmallow()
 
 
-def register_api_blueprints(restapi):
-    from .api.v1 import items
-    from .api.v1 import (
-        cell,
-        compound,
-        identity,
-        items,
-        modality,
-        plate,
-        section,
-        stack,
-        tag,
-    )
+def register_api_blueprints(app, restapi):
+    with app.app_context():
 
-    restapi.register_blueprint(modality.blp)
-    restapi.register_blueprint(compound.blp)
-    restapi.register_blueprint(stack.blp)
-    restapi.register_blueprint(plate.blp)
-    restapi.register_blueprint(tag.blp)
-    restapi.register_blueprint(section.blp)
-    restapi.register_blueprint(items.blp)
-    restapi.register_blueprint(cell.blp)
-    restapi.register_blueprint(identity.blp)
+        from .api.v1 import (cell, compound, identity, items, modality, plate,
+                             section, stack, tag)
+
+        restapi.register_blueprint(modality.blp)
+        restapi.register_blueprint(compound.blp)
+        restapi.register_blueprint(stack.blp)
+        restapi.register_blueprint(plate.blp)
+        restapi.register_blueprint(tag.blp)
+        restapi.register_blueprint(section.blp)
+        restapi.register_blueprint(cell.blp)
+        restapi.register_blueprint(identity.blp)
+        restapi.register_blueprint(items.blp)
 
 
 def add_url_views(app, reader=None):
     from .views.index import bp as main_bp
 
     app.register_blueprint(main_bp, url_prefix="/")
+
+    from app.views.remote_item import RemoteItemView
 
     from .models.cell import Cell, CellSchema
     from .models.compound import Compound, CompoundSchema
@@ -75,9 +68,8 @@ def add_url_views(app, reader=None):
     from .models.section import Section, SectionSchema
     from .models.stack import Stack, StackSchema
     from .views import GenericDetailedView, ListView
-    from .views.plate import PlateView
+    from .views.plate import DetailedPlateView
     from .views.stack import StackView
-    from app.views.remote_item import RemoteItemView
 
     # Add detailed views
     for model, schema in zip(
@@ -100,20 +92,20 @@ def add_url_views(app, reader=None):
         app.add_url_rule(
             f"/{name}/detail/<uuid:id>",
             view_func=GenericDetailedView.as_view(
-                f"{name}_detail", model, schema, app.config["ITEMS_PER_PAGE"]
+                f"{name}_detail", model, schema, app.config["VIEWS_ITEMS_PER_PAGE"]
             ),
         )
 
     app.add_url_rule(
         f"/plate/detail/<uuid:id>",
-        view_func=PlateView.as_view(
-            f"plate_detail", Plate, PlateSchema, app.config["ITEMS_PER_PAGE"]
+        view_func=DetailedPlateView.as_view(
+            f"plate_detail", Plate, PlateSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
         ),
     )
     app.add_url_rule(
         f"/stack/detail/<uuid:id>",
         view_func=StackView.as_view(
-            f"stack_detail", Stack, StackSchema, app.config["ITEMS_PER_PAGE"]
+            f"stack_detail", Stack, StackSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
         ),
     )
 
@@ -133,12 +125,15 @@ def add_url_views(app, reader=None):
         app.add_url_rule(
             f"/{name}/list/".lower(),
             view_func=ListView.as_view(
-                f"{name}_list", obj, schema, app.config["ITEMS_PER_PAGE"]
+                f"{name}_list", obj, schema, app.config["VIEWS_ITEMS_PER_PAGE"]
             ),
         )
 
     app.add_url_rule(
-        "/item/<uuid:id>", view_func=RemoteItemView.as_view("item", reader, app.config['ITEMS_PER_PAGE'])
+        "/item/<uuid:id>",
+        view_func=RemoteItemView.as_view(
+            "item", reader, app.config["VIEWS_ITEMS_PER_PAGE"]
+        ),
     )
 
 
@@ -166,7 +161,7 @@ def create_app(mode):
     app.jinja_env.filters["zip"] = zip
 
     restapi.init_app(app)
-    register_api_blueprints(restapi)
+    register_api_blueprints(app, restapi)
 
     db.init_app(app)
     bootstrap.init_app(app)

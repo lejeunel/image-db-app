@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from app.api import Blueprint
+from flask_smorest import Blueprint
 from flask import request
 from flask.views import MethodView
 
