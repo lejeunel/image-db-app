@@ -35,7 +35,7 @@ class StackView(GenericDetailedView):
         super().__init__(*args, **kwargs)
 
     def make_summary_table(self, id):
-        stack = Stack.query.filter_by(id=id).first()
+        stack = db.session.query(Stack).filter_by(id=id).first()
         stack_summary = make_stack_summary(stack)
         table = json2table.convert(
             stack_summary,

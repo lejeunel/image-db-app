@@ -21,7 +21,7 @@ class CompoundAPI(MethodView):
     def get(self, id):
         """Get compound"""
 
-        res = record_exists(self.model, id).first()
+        res = record_exists(db,self.model, id).first()
         return res
 
     @admin_required
@@ -62,7 +62,7 @@ class CompoundAPI(MethodView):
     @staticmethod
     def _update(id, data):
 
-        record_exists(Compound, id)
+        record_exists(db,Compound, id)
 
         cpd = Compound.query.filter_by(id=id)
         cpd.update(data)
@@ -71,7 +71,7 @@ class CompoundAPI(MethodView):
 
     @staticmethod
     def _can_delete(id):
-        record_exists(Compound, value=id, field="id")
+        record_exists(db,Compound, value=id, field="id")
         check_dependencies(Compound, value=id, field="id", remote="sections")
 
     @staticmethod

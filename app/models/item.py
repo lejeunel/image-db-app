@@ -23,31 +23,16 @@ class Item(db.Model):
     timepoint_id = db.Column(db.ForeignKey("timepoint.id"))
 
 
-class ItemSchema(ma.SQLAlchemySchema):
+class ItemSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Item
+        additional = ('plate_name', 'cell_name', 'cell_code',
+                      'stack_name', 'modality_name',
+                      'modality_target', 'compound_concentration',
+                      'compound_name', 'compound_property_id',
+                      'timepoint_time', 'timepoint_id', 'section_id',
+                      'tags')
 
-    id = ma.UUID()
-    uri = ma.String()
-    row = ma.String()
-    col = ma.Int()
-    site = ma.Int()
-    chan = ma.Int()
-    plate_id = ma.UUID()
-
-    plate_name = ma.String(dump_only=True)
-    cell_name = ma.String(dump_only=True)
-    cell_code = ma.String(dump_only=True)
-    stack_name = ma.String(dump_only=True)
-    modality_name = ma.String(dump_only=True)
-    modality_target = ma.String(dump_only=True)
-    compound_concentration = ma.Float(dump_only=True)
-    compound_name = ma.String(dump_only=True)
-    compound_property_id = ma.Int(dump_only=True)
-    tp_time = ma.DateTime(dump_only=True)
-    timepoint_id = ma.UUID()
-    section_id = ma.UUID(dump_only=True)
-    tags = ma.String(dump_only=True)
 
     @post_dump()
     def concat_compound_props(self, data, **kwargs):

@@ -20,22 +20,15 @@ class Plate(db.Model):
     def __repr__(self):
         return f"<Plate {self.name} ({self.id})>"
 
-class PlateSchema(ma.SQLAlchemySchema):
+class PlateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Plate
-
-    id = ma.auto_field()
-    name = ma.auto_field()
-    date = ma.auto_field()
-    origin = ma.auto_field()
-    project = ma.auto_field()
-    comment = ma.auto_field()
 
     timepoints = ma.List(ma.Nested(TimePointSchema))
 
     @post_dump()
     def append_timepoints(self, data, **kwargs):
-        timepoints = TimePoint.query.filter(Plate.id == data["id"])
+        timepoints = db.session.query(TimePoint).filter(Plate.id == data["id"])
         timepoints = TimePointSchema(many=True).dump(timepoints)
         data["timepoints"] = timepoints
         return data

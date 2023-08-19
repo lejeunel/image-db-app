@@ -25,7 +25,7 @@ class TagAPI(MethodView):
     def get(self, id):
         """Get tag"""
 
-        res = record_exists(Tag, id)
+        res = record_exists(db,Tag, id)
         return res.first()
 
     @admin_required
@@ -67,7 +67,7 @@ class TagAPI(MethodView):
     @staticmethod
     def _update(id, data):
 
-        tag = Tag.query.filter_by(id=id)
+        tag = db.session.query(Tag).filter_by(id=id)
         if tag.first() is None:
             abort(404, message="Tag with id {} not found.".format(id))
 
@@ -77,9 +77,9 @@ class TagAPI(MethodView):
 
     @staticmethod
     def _check_dependencies(id):
-        a = ItemTagAssociation.query.filter_by(tag_id=id)
+        a = db.session.query(ItemTagAssociation).filter_by(tag_id=id)
         if a.count() > 0:
-            d = Tag.query.filter_by(id=id).first()
+            d = db.session.query(Tag).filter_by(id=id).first()
             abort(
                 424,
                 message="Could not delete tag (id: {}, name: {}). Found tagged item.".format(
@@ -89,7 +89,7 @@ class TagAPI(MethodView):
 
     @staticmethod
     def _can_delete(id):
-        res = record_exists(Tag, id)
+        res = record_exists(db,Tag, id)
         TagAPI._check_dependencies(id)
         return res.first()
 

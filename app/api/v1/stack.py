@@ -60,7 +60,7 @@ class StackAPI(MethodView):
     def get(self, id):
         """Get stack"""
 
-        stack = Stack.query.filter_by(id=id).first()
+        stack = db.session.query(Stack).filter_by(id=id).first()
         if stack is None:
             abort(404, message="Not found.")
         return stack
@@ -100,7 +100,7 @@ class StackAPI(MethodView):
 
         # check that all modalities exist
         for m in data_assoc["modalities"]:
-            record_exists(Modality, value=m, field="name")
+            record_exists(db,Modality, value=m, field="name")
         #
         # create stack record
         stack = Stack(**data_stack)
@@ -112,7 +112,7 @@ class StackAPI(MethodView):
         for r in pivot_dict(data_assoc):
             data = {
                 "stack_id": stack.id,
-                "modality_id": Modality.query.filter_by(name=r["modalities"])
+                "modality_id": db.session.query(Modality).filter_by(name=r["modalities"])
                 .first()
                 .id,
                 "chan": r["channels"],
@@ -129,29 +129,29 @@ class StackAPI(MethodView):
 
         data_assoc, data_stack = split_dict(data)
 
-        record_exists(Stack, id)
+        record_exists(db,Stack, id)
 
         if data_assoc:
             check_num_params(data_assoc)
             # check that all modalities exist
             for modality in data_assoc["modalities"]:
-                record_exists(Modality, value=modality, field="name")
+                record_exists(db,Modality, value=modality, field="name")
 
-        q = Stack.query.filter_by(id=id)
+        q = db.session.query(Stack).filter_by(id=id)
         if data_stack:
             q.update(data_stack)
             db.session.commit()
 
         if data_assoc:
             # remove all associations
-            assoc = StackModalityAssociation.query.filter_by(stack_id=id).all()
+            assoc = db.session.query(StackModalityAssociation).filter_by(stack_id=id).all()
             for a in assoc:
                 db.session.delete(a)
             db.session.commit()
 
             # add new associations
             for a in pivot_dict(data_assoc):
-                modality_id = Modality.query.filter_by(name=a["modalities"]).first().id
+                modality_id = db.session.query(Modality).filter_by(name=a["modalities"]).first().id
 
                 assoc = StackModalityAssociation(
                     stack_id=id, modality_id=modality_id, chan=a["channels"]
@@ -166,7 +166,7 @@ class StackAPI(MethodView):
     def _check_dependencies(id):
 
         # check if stack has dependencies
-        stack = Stack.query.filter_by(id=id).first()
+        stack = db.session.query(Stack).filter_by(id=id).first()
         if len(stack.sections) > 0:
             abort(
                 424,
@@ -177,7 +177,7 @@ class StackAPI(MethodView):
 
     @staticmethod
     def _can_delete(id):
-        res = record_exists(Stack, id)
+        res = record_exists(db,Stack, id)
         StackAPI._check_dependencies(id)
         return res
 
@@ -187,7 +187,7 @@ class StackAPI(MethodView):
         res = StackAPI._can_delete(id).first()
 
         # delete associations
-        assoc = StackModalityAssociation.query.filter_by(stack_id=id).all()
+        assoc = db.session.query(StackModalityAssociation).filter_by(stack_id=id).all()
         for a in assoc:
             db.session.delete(a)
 

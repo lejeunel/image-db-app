@@ -64,7 +64,6 @@ class RemoteItemView(View):
         if type_ == 'image':
             kwargs['graph_json'] = self.image_to_json(content)
 
-        breakpoint()
         return render_template(
             "detail/item.html",
             table=meta_table,

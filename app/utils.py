@@ -34,23 +34,9 @@ def flatten_list_of_dict(list_):
         dict_[k] = [r[k] for r in list_]
     return dict_
 
-def make_records(query, field_names):
-    """
-    from a list of tuples and name of fields,
-    generate a list of records (dict)
+def record_exists(db, model, value, field="id"):
 
-    """
-
-    images = [
-        {field: v
-         for field, v in zip(field_names, values)} for values in query
-    ]
-
-    return images
-
-def record_exists(model, value, field="id"):
-
-    item = model.query.filter_by(**{field: value})
+    item = db.session.query(model).filter_by(**{field: value})
     if item.count() == 0:
         abort(
             404,

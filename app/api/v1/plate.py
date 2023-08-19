@@ -29,7 +29,7 @@ class PlateAPI(MethodView):
     def get(self, id):
         """Get plate"""
 
-        res = record_exists(Plate, id)
+        res = record_exists(db,Plate, id)
 
         return res.first()
 
@@ -39,9 +39,9 @@ class PlateAPI(MethodView):
     def put(self, data, id):
         """Update plate. This does not modify timepoints!"""
         data.pop('timepoints', None)
-        res = record_exists(Plate, id)
+        res = record_exists(db,Plate, id)
 
-        q = Plate.query.filter_by(id=id)
+        q = db.session.query(Plate).filter_by(id=id)
         q.update(data)
         db.session.commit()
 
@@ -52,7 +52,7 @@ class PlateAPI(MethodView):
     def delete(self, id):
         """Delete plate"""
 
-        res = record_exists(Plate, id)
+        res = record_exists(db,Plate, id)
 
         plate = res.first()
         timepoints = plate.timepoints

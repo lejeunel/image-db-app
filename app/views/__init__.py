@@ -9,7 +9,6 @@ from app.models.item import ItemSchema
 
 
 def make_item_pagination(items, page, items_per_page):
-    # TODO this should use schema
 
     items_paginate = items.paginate(page=page, per_page=items_per_page, error_out=False)
     items = ItemSchema(many=True).dump(items_paginate)

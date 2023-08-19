@@ -2,6 +2,7 @@ import uuid
 
 from app import db, ma
 from sqlalchemy_utils.types.uuid import UUIDType
+from marshmallow import post_dump
 
 
 class Stack(db.Model):
@@ -32,12 +33,13 @@ class StackModalityAssociation(db.Model):
     chan = db.Column(db.Integer())
 
 
-class StackSchema(ma.SQLAlchemySchema):
+class StackSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Stack
+        additional = ('modalities', 'channels')
 
-    id = ma.auto_field()
-    name = ma.auto_field()
-    comment = ma.auto_field()
-    modalities = ma.List(ma.String())
-    channels = ma.List(ma.Int())
+    @post_dump()
+    def modalities_channels(self, data, **kwargs):
+        data['modalities'] = [m.name for m in data['modalities']]
+        data['channels'] = list(data['channels'])
+        return data

@@ -10,37 +10,16 @@ from ...models.section import Section
 from ...models.stack import Stack, StackModalityAssociation
 
 
-from app.utils import make_records, record_exists
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import func
 from sqlalchemy.sql.elements import literal_column
+from sqlalchemy import text
 
 from ... import db
 
 blp = Blueprint("Items", "Items", url_prefix="/api/v1/items", description="")
-
-
-field_to_attr = {
-    "id": Item.id,
-    "uri": Item.uri,
-    "row": Item.row,
-    "col": Item.col,
-    "site": Item.site,
-    "plate_name": Plate.name,
-    "cell_name": Cell.name,
-    "cell_code": Cell.code,
-    "stack_name": Stack.name,
-    "modality_name": Modality.name,
-    "modality_target": Modality.target,
-    "compound_concentration": Section.compound_concentration,
-    "compound_name": Compound.name,
-    "tag": Tag.name,
-    "tp_time": TimePoint.time,
-    "timepoint_id": TimePoint.id,
-    "section_id": Section.id,
-    "plate_id": Plate.id,
-}
 
 
 def get_items_with_meta():
@@ -48,9 +27,11 @@ def get_items_with_meta():
 
     # aggregate tags (sqlite and postgre)
     if "sqlite" in db.engine.url:
-        my_string_agg_fn = func.group_concat(Tag.name, ",").label('tags')
+        my_string_agg_fn = func.group_concat(Tag.name, ",").label("tags")
     elif "postgre" in db.engine.url:
-        my_string_agg_fn = func.string_agg(Tag.name, literal_column("','")).label("tags")
+        my_string_agg_fn = func.string_agg(Tag.name, literal_column("','")).label(
+            "tags"
+        )
     else:
         raise NotImplementedError
 
@@ -75,7 +56,7 @@ def get_items_with_meta():
             TimePoint.time.label("timepoint_time"),
             TimePoint.id.label("timepoint_id"),
             Section.id.label("section_id"),
-            my_string_agg_fn
+            my_string_agg_fn,
         )
         .join(Plate, Plate.id == Item.plate_id)
         .join(TimePoint, TimePoint.id == Item.timepoint_id)
@@ -102,11 +83,22 @@ def get_items_with_meta():
     return items
 
 
-def apply_query_args(items, query_args):
+def apply_query_args(db, items, query_args):
     # TODO use nested set logic to filter
+
     for k, v in query_args.items():
-        attr = field_to_attr[k]
-        items = items.filter(attr == v)
+        # fetch all registered models
+        models = [mapper.class_ for mapper in db.Model.registry.mappers]
+
+        if "_" in k:
+            table_name, field = k.split("_")
+        else:
+            table_name = "item"
+            field = k
+
+        model = [m for m in models if m.__tablename__ == table_name][0]
+        field = getattr(model, field)
+        items = items.filter(field == v)
     return items
 
 
@@ -122,14 +114,13 @@ class Items(MethodView):
         """
 
         items = get_items_with_meta()
-        items = apply_query_args(items, args)
+        items = apply_query_args(db, items, args)
 
         pagination_parameters.item_count = items.count()
         items = items.paginate(
             page=pagination_parameters.page, per_page=pagination_parameters.page_size
         ).items
 
-        items = make_records(items, ItemSchema._declared_fields.keys())
         return items
 
 
@@ -141,11 +132,11 @@ class ItemTagger(MethodView):
     def post(self, args, tag_name, pagination_parameters):
         """Tag items"""
 
-        record_exists(Tag, tag_name, field="name")
-        id = Tag.query.filter(Tag.name == tag_name).first().id
+        record_exists(db, Tag, tag_name, field="name")
+        id = db.session.query(Tag).filter(Tag.name == tag_name).first().id
 
         items = get_items_with_meta()
-        items = apply_query_args(items, args).all()
+        items = apply_query_args(db, items, args).all()
 
         pagination_parameters.item_count = len(items)
         assocs = [ItemTagAssociation(item_id=i.id, tag_id=id) for i in items]
@@ -160,16 +151,19 @@ class ItemTagger(MethodView):
     def delete(self, args, tag_name, pagination_parameters):
         """Remove a tag from (set of) items"""
 
-        record_exists(Tag, tag_name, field="name")
-        tag_id = Tag.query.filter(Tag.name == tag_name).first().id
+        record_exists(db, Tag, tag_name, field="name")
+        tag_id = db.session.query(Tag).filter(Tag.name == tag_name).first().id
 
         items = get_items_with_meta()
-        items = apply_query_args(items, args)
+        items = apply_query_args(db, items, args)
         pagination_parameters.item_count = items.count()
 
         item_ids = [i.id for i in items]
-        assocs = ItemTagAssociation.query.filter(
-            ItemTagAssociation.item_id.in_(item_ids)
-        ).filter(ItemTagAssociation.tag_id == tag_id).delete()
+        assocs = (
+            db.session.query(ItemTagAssociation)
+            .filter(ItemTagAssociation.item_id.in_(item_ids))
+            .filter(ItemTagAssociation.tag_id == tag_id)
+            .delete()
+        )
 
         db.session.commit()

@@ -29,7 +29,7 @@ class ModalityAPI(MethodView):
     def get(self, id):
         """Get modality"""
 
-        res = record_exists(self.model, id).first()
+        res = record_exists(db,self.model, id).first()
         return res
 
     @admin_required
@@ -71,7 +71,7 @@ class ModalityAPI(MethodView):
     @staticmethod
     def _update(id, data):
 
-        item = record_exists(Modality, id)
+        item = record_exists(db,Modality, id)
 
         item.update(data)
         db.session.commit()
@@ -80,7 +80,7 @@ class ModalityAPI(MethodView):
     @staticmethod
     def _delete(id):
 
-        res = record_exists(Modality, id)
+        res = record_exists(db,Modality, id)
 
         check_dependencies(Modality, value=id, field="id", remote="stacks")
 

@@ -38,7 +38,6 @@ class S3Reader(BaseReader):
         """
         Return bytes from bucket
 
-        TODO throw and re-raise boto ClientError as ReaderException
         """
         uri = urlparse(uri)
         bucket = uri.netloc

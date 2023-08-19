@@ -43,7 +43,7 @@ class SectionsAPI(MethodView):
     def get(self, plate_id):
         """Get all sections from plate ID"""
 
-        res = record_exists(Plate, plate_id)
+        res = record_exists(db,Plate, plate_id)
 
         return res.first().sections
 
@@ -52,7 +52,7 @@ class SectionsAPI(MethodView):
     def delete(self, plate_id):
         """Delete all sections"""
 
-        res = record_exists(Plate, plate_id)
+        res = record_exists(db,Plate, plate_id)
         for s in res.first().sections:
             res = SectionAPI._delete(s.id)
 
@@ -74,7 +74,7 @@ class SectionAPI(MethodView):
     def get(self, id):
         """Get section"""
 
-        res = record_exists(Section, id)
+        res = record_exists(db,Section, id)
 
         return res.first()
 
@@ -112,7 +112,7 @@ class SectionAPI(MethodView):
         """
 
         # get row and col range of plate
-        plate = Plate.query.filter_by(id=a["plate_id"]).first()
+        plate = db.session.query(Plate).filter_by(id=a["plate_id"]).first()
         items = plate.items
         rows = [im.row for im in items]
         cols = [im.col for im in items]
@@ -148,14 +148,14 @@ class SectionAPI(MethodView):
     @staticmethod
     def _create(data):
 
-        record_exists(Cell, value=data["cell_id"], field="id")
-        record_exists(Compound, value=data["compound_id"], field="id")
-        record_exists(Stack, value=data["stack_id"], field="id")
+        record_exists(db,Cell, value=data["cell_id"], field="id")
+        record_exists(db,Compound, value=data["compound_id"], field="id")
+        record_exists(db,Stack, value=data["stack_id"], field="id")
 
         SectionAPI._check_range(data["plate_id"], data)
 
         # check for overlap with existing sections of same plate
-        existing_sections = Plate.query.filter_by(id=data["plate_id"]).first().sections
+        existing_sections = db.session.query(Plate).filter_by(id=data["plate_id"]).first().sections
         for s in existing_sections:
             SectionAPI._check_overlap(s.__dict__, data)
 
@@ -168,7 +168,7 @@ class SectionAPI(MethodView):
     @staticmethod
     def _delete(id):
 
-        res = record_exists(Section, id, field="id").first()
+        res = record_exists(db,Section, id, field="id").first()
 
         db.session.delete(res)
         db.session.commit()
@@ -177,23 +177,23 @@ class SectionAPI(MethodView):
     def _update(id, data):
         if "cell_code" in data.keys():
             data["cell_id"] = (
-                record_exists(Cell, value=data["cell_code"], field="code").first().id
+                record_exists(db,Cell, value=data["cell_code"], field="code").first().id
             )
             data.pop("cell_code", None)
         if "compound_name" in data.keys():
             data["compound_id"] = (
-                record_exists(Compound, value=data["compound_name"], field="name")
+                record_exists(db,Compound, value=data["compound_name"], field="name")
                 .first()
                 .id
             )
             data.pop("compound_name", None)
         if "stack_name" in data.keys():
             data["stack_id"] = (
-                record_exists(Stack, value=data["stack_name"], field="name").first().id
+                record_exists(db,Stack, value=data["stack_name"], field="name").first().id
             )
             data.pop("stack_name", None)
 
-        elem = Section.query.filter_by(id=id)
+        elem = db.session.query(Section).filter_by(id=id)
 
         if data:
             elem.update(data)

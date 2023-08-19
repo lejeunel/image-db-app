@@ -43,17 +43,13 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Section
         include_fk = True
-
-    compound_name = ma.String()
-    cell_name = ma.String()
-    cell_code = ma.String()
-    stack_name = ma.String()
+        additional = ('compound_name', 'cell_name', 'cell_code', 'stack_name')
 
     @post_dump()
     def stack_id_to_name(self, data, **kwargs):
         if "stack_id" in data:
             data["stack_name"] = (
-                Stack.query.filter(Stack.id == data["stack_id"]).first().name
+                db.session.query(Stack).filter(Stack.id == data["stack_id"]).first().name
             )
             data.pop("stack_id")
         return data
@@ -62,7 +58,7 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     def stack_name_to_id(self, data, **kwargs):
         if "stack_name" in data:
             data["stack_id"] = (
-                Stack.query.filter(Stack.name == data["stack_name"]).first().id
+                db.session.query(Stack).filter(Stack.name == data["stack_name"]).first().id
             )
             data.pop("stack_name")
         return data
@@ -71,7 +67,7 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     def cell_id_to_code(self, data, **kwargs):
         if "cell_id" in data:
             data["cell_code"] = (
-                Cell.query.filter(Cell.id == data["cell_id"]).first().code
+                db.session.query(Cell).filter(Cell.id == data["cell_id"]).first().code
             )
             data.pop("cell_id")
         return data
@@ -80,7 +76,7 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     def cell_code_to_id(self, data, **kwargs):
         if "cell_code" in data:
             data["cell_id"] = (
-                Cell.query.filter(Cell.code == data["cell_code"]).first().id
+                db.session.query(Cell).filter(Cell.code == data["cell_code"]).first().id
             )
             data.pop("cell_code")
         return data
@@ -89,7 +85,7 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     def compound_id_to_name(self, data, **kwargs):
         if "compound_id" in data:
             data["compound_name"] = (
-                Compound.query.filter(Compound.id == data["compound_id"]).first().name
+                db.session.query(Compound).filter(Compound.id == data["compound_id"]).first().name
             )
             data.pop("compound_id")
         return data
@@ -98,7 +94,7 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     def compound_name_to_id(self, data, **kwargs):
         if "compound_name" in data:
             data["compound_id"] = (
-                Compound.query.filter(Compound.name == data["compound_name"]).first().id
+                db.session.query(Compound).filter(Compound.name == data["compound_name"]).first().id
             )
             data.pop("compound_name")
         return data
@@ -106,10 +102,10 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
     @pre_load()
     def check_records(self, data, **kwargs):
         if "stack_name" in data:
-            record_exists(Stack, value=data["stack_name"], field="name")
+            record_exists(db, Stack, value=data["stack_name"], field="name")
         if "compound_name" in data:
-            record_exists(Compound, value=data["compound_name"], field="name")
+            record_exists(db,Compound, value=data["compound_name"], field="name")
         if "cell_code" in data:
-            record_exists(Cell, value=data["cell_code"], field="code")
+            record_exists(db,Cell, value=data["cell_code"], field="code")
 
         return data
