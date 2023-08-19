@@ -2,7 +2,7 @@
 
 import marshmallow as ma
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from app.api import Blueprint
 
 from ... import db
 from ...models.cell import Cell, CellSchema

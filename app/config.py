@@ -64,6 +64,7 @@ class ConfigTest(Config):
     TESTING = True
     # in-memory
     SQLALCHEMY_DATABASE_URI = "sqlite://"
+    DEFAULT_PAGINATION_PARAMETERS = {"page": 1, "page_size": 100000, "max_page_size": 1000000}
 
 
 default = Config()

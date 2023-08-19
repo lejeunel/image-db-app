@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+from app.api import Blueprint
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
+from flask_smorest import abort
 
 from ... import db
 from ...models.cell import Cell

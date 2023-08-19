@@ -30,6 +30,9 @@ class ItemSchema(ma.SQLAlchemyAutoSchema):
                       'stack_name', 'modality_name',
                       'modality_target', 'compound_concentration',
                       'compound_name', 'compound_property_id',
+                      'compound_moa_group',
+                      'compound_moa_subgroup',
+                      'compound_target',
                       'timepoint_time', 'timepoint_id', 'section_id',
                       'tags')
 

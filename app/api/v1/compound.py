@@ -2,7 +2,7 @@ from app.models.compound import (Compound, CompoundProperty,
                                  CompoundPropertySchema, CompoundSchema)
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from app.api import Blueprint
 
 from ... import db
 from . import admin_required, check_dependencies, check_duplicate

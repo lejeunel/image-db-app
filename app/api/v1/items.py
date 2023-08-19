@@ -12,12 +12,14 @@ from ...models.stack import Stack, StackModalityAssociation
 
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from app.api import Blueprint
 from sqlalchemy import func
 from sqlalchemy.sql.elements import literal_column
 from sqlalchemy import text
+from flask import current_app
 
 from ... import db
+
 
 blp = Blueprint("Items", "Items", url_prefix="/api/v1/items", description="")
 
@@ -91,14 +93,33 @@ def apply_query_args(db, items, query_args):
         models = [mapper.class_ for mapper in db.Model.registry.mappers]
 
         if "_" in k:
-            table_name, field = k.split("_")
+            elements = k.split("_")
+            table_name = elements[0]
+            field = "_".join(elements[1:])
         else:
             table_name = "item"
             field = k
 
         model = [m for m in models if m.__tablename__ == table_name][0]
-        field = getattr(model, field)
-        items = items.filter(field == v)
+        model_has_attr = hasattr(model, field)
+        if model_has_attr:
+            field = getattr(model, field)
+            items = items.filter(field == v)
+        else:
+            # check in compound properties
+            compound_property = CompoundProperty.query.filter(
+                CompoundProperty.type == field
+            ).filter(CompoundProperty.value == v)
+
+            found_matching_property = compound_property.count() > 0
+            if found_matching_property:
+                matching_property = compound_property.first()
+                items = items.filter(
+                    CompoundProperty.left >= matching_property.left
+                ).filter(CompoundProperty.right <= matching_property.right)
+            else:
+                items = items.filter(False)
+
     return items
 
 

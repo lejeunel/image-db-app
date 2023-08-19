@@ -8,6 +8,7 @@ from app.dummy_db import _populate_db
 class TestClient(testing.FlaskClient):
     def open(self, *args, **kwargs):
         args = ("/api/v1/" + args[0],)
+        # return super().open(*args, page_size=10e5, max_page_size=10e5, **kwargs)
         return super().open(*args, **kwargs)
 
 

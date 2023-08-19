@@ -2,7 +2,8 @@
 
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
+from app.api import Blueprint
+from flask_smorest import abort
 
 from ... import db
 from ...models.modality import Modality

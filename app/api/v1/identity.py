@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from flask.views import MethodView
-from flask_smorest import Blueprint, abort
-import json
-from . import get_user_profile
+from app.api import Blueprint
 from flask import request
+from flask.views import MethodView
+
+from . import get_user_profile
 
 blp = Blueprint("Identity", "Identity", url_prefix="/api/v1/identity", description="")
 

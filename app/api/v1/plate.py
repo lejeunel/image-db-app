@@ -3,7 +3,7 @@
 from app.utils import record_exists
 from flask import jsonify
 from flask.views import MethodView
-from flask_smorest import Blueprint
+from app.api import Blueprint
 
 from ... import db, parser
 from ...exceptions import MyException
