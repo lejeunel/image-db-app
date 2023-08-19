@@ -1,3 +1,6 @@
+from marshmallow import ValidationError
+from urllib.parse import urlparse
+
 
 def _concat_properties(
         db, property_model, data, prefix="compound_", id_field="compound_property_id", **kwargs

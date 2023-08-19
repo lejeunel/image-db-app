@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-import re
-import boto3
 from urllib.parse import urlparse
-from pathlib import PurePosixPath
-from .base import BaseReader
-from ..exceptions import ParsingException, DownloadException
-import numpy as np
-from PIL import Image
-from botocore.client import ClientError as BotoClientError
+
+import boto3
 from aws_error_utils import get_aws_error_info
+from botocore.client import ClientError as BotoClientError
+
+from ..exceptions import DownloadException, ParsingException
+from .base import BaseReader
 
 
 def get_bucket_client():
@@ -53,8 +51,6 @@ class S3Reader(BaseReader):
         return body
 
     def list(self, uri) -> list[str]:
-        if uri[-1] != "/":
-            return uri
 
         try:
             pages = get_pages(self.client, uri)

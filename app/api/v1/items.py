@@ -97,6 +97,8 @@ def apply_query_args(db, items, query_args):
         # fetch all registered models
         models = [mapper.class_ for mapper in db.Model.registry.mappers]
 
+        # case 1: left of underscore is the name of table/model
+        # case 2: no underscore -> use table "item"
         if "_" in k:
             elements = k.split("_")
             table_name = elements[0]
@@ -111,7 +113,7 @@ def apply_query_args(db, items, query_args):
             field = getattr(model, field)
             items = items.filter(field == v)
         else:
-            # check in compound properties
+            # case 3: fetch in compound_property for matching attribute
             compound_property = CompoundProperty.query.filter(
                 CompoundProperty.type == field
             ).filter(CompoundProperty.value == v)

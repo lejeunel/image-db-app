@@ -9,14 +9,14 @@ def test_get_section_timepoint(client):
         res = client.get(f"items/?section_id={section_id}&timepoint_id={tp_id}")
         assert all([im['timepoint_id'] == tp_id for im in res.json])
         assert all([im['section_id'] == section_id for im in res.json])
-        assert all([len(im['tags'].split(',')) == 1 for im in res.json])
+        assert all([len(im['tags']) == 1 for im in res.json])
 
 def test_tags_are_joined(client):
     res = client.get("items/")
-    image =  res.json[0]
+    item =  res.json[0]
 
     # check that joining on tags is ok
-    assert len(image['tags'].split(',')) == 1
+    assert len(item['tags']) == 1
 
 def test_get_images(client):
     res = client.get("items/")
@@ -95,17 +95,16 @@ def test_apply_new_tags_with_params(client):
     items = client.get("items/?{}".format(params)).json
     assert 'tag_3' in items[0]['tags']
 
-def test_delete_one_tag(client):
+def test_untag(client):
     plates = client.get('plate/').json
-    plate = plates[0]
-    plate_id = plate['id']
+    plate_id = plates[0]['id']
     params = urlencode({'plate_id': plate_id})
 
     new_tag = {'name': 'newtag'}
     res = client.post('tag/', json=new_tag)
 
     image_before = client.get("items/?{}".format(params)).json[0]
-    tags_before = image_before['tags'].split(',')
+    tags_before = image_before['tags']
 
     url = "items/tag/{}?{}".format('newtag', params)
     res = client.post(url)

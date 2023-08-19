@@ -52,6 +52,8 @@ class Config:
     CLIENT_ID = config("CLIENT_ID")
     TENANT_ID = config("TENANT_ID")
 
+    PARSER_SUPPORTED_SCHEMES = ['s3']
+
     @property
     def SQLALCHEMY_DATABASE_URI(self):
         return "postgresql+psycopg2://{}:{}@{}/{}".format(
@@ -68,6 +70,7 @@ class ConfigTest(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     API_ITEMS_PAGE_SIZE = 10000
     API_ITEMS_MAX_PAGE_SIZE = 10000
+    PARSER_SUPPORTED_SCHEMES = ['scheme']
 
 
 default = Config()

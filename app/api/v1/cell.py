@@ -24,7 +24,7 @@ class CellAPI(MethodView):
     def get(self, id):
         """Get cell"""
 
-        res = record_exists(db,Cell, id).first()
+        res = record_exists(db, Cell, id).first()
         return res
 
     @admin_required
@@ -49,7 +49,7 @@ class CellAPI(MethodView):
     @blp.response(204)
     def delete(self, id):
         """Delete cell"""
-        cell = record_exists(db,Cell, id)
+        cell = record_exists(db, Cell, id)
         check_dependencies(Cell, value=id, field="id", remote="sections")
 
         db.session.delete(cell.first())
@@ -57,7 +57,6 @@ class CellAPI(MethodView):
 
     @staticmethod
     def _create(data):
-
         check_duplicate(db.session, Cell, code=data["code"])
         check_duplicate(db.session, Cell, name=data["name"])
 
@@ -69,8 +68,7 @@ class CellAPI(MethodView):
 
     @staticmethod
     def _update(id, data):
-
-        cell = record_exists(db,Cell, id)
+        cell = record_exists(db, Cell, id)
 
         cell.update(data)
         db.session.commit()

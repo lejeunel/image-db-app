@@ -1,4 +1,4 @@
-from app.reader.base import BaseReader, validate_uri
+from app.reader.base import BaseReader
 
 class TestReader(BaseReader):
     """
@@ -20,9 +20,7 @@ class TestReader(BaseReader):
             for chan in range(1, 4)
             for site in range(2)
         ]
-        self.allowed_schemes = ['scheme']
 
-    @validate_uri()
     def list(self, uri) -> list[str]:
         """
         Return all items at uri
