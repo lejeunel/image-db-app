@@ -97,7 +97,7 @@ def apply_query_args(db, items, query_args):
         models = [mapper.class_ for mapper in db.Model.registry.mappers]
 
         # case 1: left of underscore is the name of table/model
-        # case 2: tags -> use contains
+        # case 2: tags -> use regexp
         # case 3: no underscore -> use table "item"
         # case 4: table/model combination is invalid, check for compound property
         if "_" in k:
@@ -109,7 +109,7 @@ def apply_query_args(db, items, query_args):
             field = 'name'
             items = items.subquery()
             # tag name can be followed by a comma (when it has other tags)
-            items = db.session.query(items).filter(items.c.tags.regexp_match(f'{v},?'))
+            items = db.session.query(items).filter(items.c.tags.regexp_match(f'({v},)|({v}$)'))
         else:
             table_name = "item"
             field = k
