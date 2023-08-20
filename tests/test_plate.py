@@ -32,7 +32,7 @@ def test_update(client):
     data = dict(existing)
     data["name"] = "new name"
     id = client.get("plate/").json[0]["id"]
-    res = client.put(f"plate/{id}", json=data)
+    res = client.patch(f"plate/{id}", json=data)
 
     assert res == 200
     assert res.json["name"] == "new name"

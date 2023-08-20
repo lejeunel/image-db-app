@@ -36,7 +36,7 @@ class PlateAPI(MethodView):
     @admin_required
     @blp.arguments(PlateSchema)
     @blp.response(200, PlateSchema)
-    def put(self, data, id):
+    def patch(self, data, id):
         """Update plate. This does not modify timepoints!"""
         data.pop('timepoints', None)
         res = record_exists(db,Plate, id)

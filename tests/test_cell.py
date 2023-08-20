@@ -6,7 +6,7 @@ new = {"name": "test_cell", "code": "test_code"}
 def test_update(client):
     cell = client.get("cell/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "cell/{}".format(cell["id"]),
         json={"name": "updated_name"},
     )
@@ -17,7 +17,7 @@ def test_update(client):
 def test_update_wrong_id(client):
     cell = client.get("cell/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "cell/{}".format(cell["id"] + "asdf"),
         json={"name": "updated_name"},
     )

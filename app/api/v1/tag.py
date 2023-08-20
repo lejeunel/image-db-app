@@ -32,17 +32,8 @@ class TagAPI(MethodView):
     @admin_required
     @blp.arguments(TagSchema)
     @blp.response(200, TagSchema)
-    def put(self, update_data, id):
-        """Update tag"""
-        res = TagAPI._update(id, update_data)
-
-        return res
-
-    @admin_required
-    @blp.arguments(TagSchema)
-    @blp.response(200, TagSchema)
     def patch(self, update_data, id):
-        """Patch compound"""
+        """Update tag"""
         res = TagAPI._update(id, update_data)
 
         return res

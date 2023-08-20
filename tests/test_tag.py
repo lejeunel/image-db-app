@@ -10,7 +10,7 @@ def test_delete_used(client):
 
 def test_update(client):
     item = client.get("tag/").json[0]
-    res = client.put(
+    res = client.patch(
         "tag/{}".format(item['id']),
         json={"name": "updated_name"},
     )

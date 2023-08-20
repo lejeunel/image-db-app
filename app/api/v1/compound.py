@@ -27,20 +27,12 @@ class CompoundAPI(MethodView):
     @admin_required
     @blp.arguments(CompoundSchema)
     @blp.response(200, CompoundSchema)
-    def put(self, update_data, id):
+    def patch(self, update_data, id):
         """Update compound"""
         res = CompoundAPI._update(id, update_data)
 
         return res
 
-    @admin_required
-    @blp.arguments(CompoundSchema)
-    @blp.response(200, CompoundSchema)
-    def patch(self, update_data, id):
-        """Patch compound"""
-        res = CompoundAPI._update(id, update_data)
-
-        return res
 
     @admin_required
     @blp.response(204)

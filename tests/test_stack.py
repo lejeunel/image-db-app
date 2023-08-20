@@ -18,7 +18,7 @@ def test_association_update(client):
 
     update_assoc["modalities"] = ["BrightField", "WGA"]
     update_assoc["chan"] = [2, 4]
-    res = client.put(
+    res = client.patch(
         "stack/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
@@ -42,7 +42,7 @@ def test_update(client):
 
     item = client.get("stack/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "stack/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
@@ -54,7 +54,7 @@ def test_add_channel(client):
 
     item = client.get("stack/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "stack/{}".format(item["id"]),
         json={"modalities": ["modality_0", "modality_1", "modality_2", "modality_3"],
               "channels": [1, 2, 3, 4]}

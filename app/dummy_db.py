@@ -11,7 +11,7 @@ def _populate_db():
     from app.models.stack import Stack, StackModalityAssociation
 
     modalities = [
-        Modality(name=n, target=t)
+        Modality(name=n, target=t, comment='a comment')
         for n, t in zip(
             [f"modality_{m}" for m in range(4)],
             [f"modality_target_{t}" for t in range(4)],
@@ -113,6 +113,10 @@ def _populate_db():
     ]
     assocs += [
         ItemTagAssociation(item_id=item.id, tag_id=tags[1].id)
+        for item in timepoints[1].items
+    ]
+    assocs += [
+        ItemTagAssociation(item_id=item.id, tag_id=tags[2].id)
         for item in timepoints[1].items
     ]
 

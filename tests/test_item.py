@@ -9,18 +9,17 @@ def test_get_section_timepoint(client):
         res = client.get(f"items/?section_id={section_id}&timepoint_id={tp_id}")
         assert all([im['timepoint_id'] == tp_id for im in res.json])
         assert all([im['section_id'] == section_id for im in res.json])
-        assert all([len(im['tags']) == 1 for im in res.json])
-
-def test_tags_are_joined(client):
-    res = client.get("items/")
-    item =  res.json[0]
-
-    # check that joining on tags is ok
-    assert len(item['tags']) == 1
 
 def test_get_images(client):
     res = client.get("items/")
     assert res == 200
+
+def test_get_image_by_tag(client):
+    res = client.get("items/?tags=tag_1")
+    assert all(['tag_1' in r['tags'] for r in res.json])
+    assert all(['tag_2' in r['tags'] for r in res.json])
+    assert all(['tag_0' not in r['tags'] for r in res.json])
+
 
 def test_get_image_by_id(client):
     res = client.get("items/")

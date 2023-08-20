@@ -91,18 +91,25 @@ def get_items_with_meta():
 
 
 def apply_query_args(db, items, query_args):
-    # TODO use nested set logic to filter
 
     for k, v in query_args.items():
         # fetch all registered models
         models = [mapper.class_ for mapper in db.Model.registry.mappers]
 
         # case 1: left of underscore is the name of table/model
-        # case 2: no underscore -> use table "item"
+        # case 2: tags -> use contains
+        # case 3: no underscore -> use table "item"
+        # case 4: table/model combination is invalid, check for compound property
         if "_" in k:
             elements = k.split("_")
             table_name = elements[0]
             field = "_".join(elements[1:])
+        elif k == 'tags':
+            table_name = 'tag'
+            field = 'name'
+            items = items.subquery()
+            # tag name can be followed by a comma (when it has other tags)
+            items = db.session.query(items).filter(items.c.tags.regexp_match(f'{v},?'))
         else:
             table_name = "item"
             field = k
@@ -113,7 +120,7 @@ def apply_query_args(db, items, query_args):
             field = getattr(model, field)
             items = items.filter(field == v)
         else:
-            # case 3: fetch in compound_property for matching attribute
+            # case 4: fetch in compound_property for matching attribute
             compound_property = CompoundProperty.query.filter(
                 CompoundProperty.type == field
             ).filter(CompoundProperty.value == v)

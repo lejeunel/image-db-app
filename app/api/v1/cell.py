@@ -30,17 +30,8 @@ class CellAPI(MethodView):
     @admin_required
     @blp.arguments(CellSchema)
     @blp.response(200, CellSchema)
-    def put(self, update_data, id):
-        """Update cell"""
-        res = CellAPI._update(id, update_data)
-
-        return res
-
-    @admin_required
-    @blp.arguments(CellSchema)
-    @blp.response(200, CellSchema)
     def patch(self, update_data, id):
-        """Patch compound"""
+        """Update cell"""
         res = CellAPI._update(id, update_data)
 
         return res

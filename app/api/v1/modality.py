@@ -35,18 +35,9 @@ class ModalityAPI(MethodView):
     @admin_required
     @blp.arguments(ModalitySchema)
     @blp.response(200, ModalitySchema)
-    def put(self, update_data, id):
+    def patch(self, update_data, id):
         """Update modality"""
 
-        res = ModalityAPI._update(id, update_data)
-
-        return res
-
-    @admin_required
-    @blp.arguments(ModalitySchema)
-    @blp.response(200, ModalitySchema)
-    def patch(self, update_data, id):
-        """Patch modality"""
         res = ModalityAPI._update(id, update_data)
 
         return res

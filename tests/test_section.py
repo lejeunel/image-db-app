@@ -6,7 +6,7 @@ def test_update_section(client):
     section = client.get(f"plate/{plate_id}/sections").json[0]
     id = section["id"]
 
-    res = client.put(
+    res = client.patch(
         f"section/{id}", json={"compound_name": "compound_0"}
     )
     assert res == 200
@@ -18,7 +18,7 @@ def test_update_wrong_id(client):
     plate_id = client.get("plate/").json[0]['id']
     item = client.get(f"plate/{plate_id}/sections").json[0]
 
-    res = client.put(
+    res = client.patch(
         "section/{}".format(item["id"] + "asdf"),
         json={"compound_name": "Tebuconazole"},
     )
@@ -86,7 +86,7 @@ def test_update_not_exists(client):
     section = client.get(f'plate/{plate_id}/sections').json[0]
     id = section["id"]
 
-    res = client.put(
+    res = client.patch(
         f"section/{id}",
         json={"compound_name": "asdf"},
     )

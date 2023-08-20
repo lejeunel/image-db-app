@@ -82,17 +82,8 @@ class SectionAPI(MethodView):
     @admin_required
     @blp.arguments(SectionSchema)
     @blp.response(200, SectionSchema)
-    def put(self, update_data, id):
-        """Update section"""
-        res = SectionAPI._update(id, update_data).first()
-
-        return res
-
-    @admin_required
-    @blp.arguments(SectionSchema)
-    @blp.response(200, SectionSchema)
     def patch(self, update_data, id):
-        """Patch section"""
+        """Update section"""
         res = SectionAPI._update(id, update_data).first()
 
         return res

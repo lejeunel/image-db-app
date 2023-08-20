@@ -69,17 +69,8 @@ class StackAPI(MethodView):
     @admin_required
     @blp.arguments(StackSchema)
     @blp.response(200, StackSchema)
-    def put(self, update_data, id):
-        """Update stack"""
-        res = StackAPI._update(id, update_data)
-
-        return res
-
-    @admin_required
-    @blp.arguments(StackSchema)
-    @blp.response(200, StackSchema)
     def patch(self, update_data, id):
-        """Patch stack"""
+        """Update stack"""
         res = StackAPI._update(id, update_data)
 
         return res

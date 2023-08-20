@@ -6,7 +6,7 @@ new = {"name": "test_compound", "property_id": 8}
 def test_update_wrong_id(client):
     item = client.get("compound/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "compound/{}".format(item["id"] + "asdf"),
         json={"name": "updated_name"},
     )
@@ -28,7 +28,7 @@ def test_create(client):
 def test_update(client):
     cpd = client.get("compound/").json[0]
 
-    res = client.put(
+    res = client.patch(
         "compound/{}".format(cpd["id"]),
         json={"name": "updated_name"},
     )
