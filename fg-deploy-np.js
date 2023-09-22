@@ -17,6 +17,10 @@ module.exports = {
         },
     },
     timeoutInSeconds: 900,
+    docker: {
+        tags: [gitCommitHash],
+        ecrRepositoryName: "plate-db-app",
+  },
     aws: {
         accountId: '472901640203',
         fargateStackName: 'SC-472901640203-pp-xvzwkk55aisnm',
