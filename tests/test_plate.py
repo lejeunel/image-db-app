@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pytest
+from urllib.parse import urlencode
 
 existing = {
     "name": "first plate",
@@ -26,6 +27,10 @@ def test_create_good_inputs(client):
     data = {"name": "new plate", "timepoints": [{"uri": "scheme://project/exp3/tp1/"}]}
     res = client.post("plate/", json=data)
     assert res == 201
+    id = res.json['id']
+    params = urlencode({'plate_id': id})
+    res = client.get("items/?{}".format(params))
+    assert res  == 200
 
 
 def test_update(client):

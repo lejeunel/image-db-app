@@ -102,7 +102,8 @@ class PlatesAPI(MethodView):
         db.session.add(plate)
         db.session.commit()
 
-        parser(base_uri=[t.uri for t in timepoints])
-
+        for t in timepoints:
+            items = parser(base_uri=t.uri, plate_id=plate.id, timepoint_id=t.id)
+            db.session.add_all(items)
 
         return plate

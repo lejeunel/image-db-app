@@ -33,9 +33,10 @@ def get_items_with_meta():
     from ... import db
 
     # aggregate tags (sqlite and postgre)
-    if "sqlite" in db.engine.url:
+    url = str(db.engine.url)
+    if "sqlite" in url:
         my_string_agg_fn = func.group_concat(Tag.name, ",").label("tags")
-    elif "postgre" in db.engine.url:
+    elif "postgre" in url:
         my_string_agg_fn = func.string_agg(Tag.name, literal_column("','")).label(
             "tags"
         )
@@ -83,8 +84,9 @@ def get_items_with_meta():
             Item.col >= Section.col_start,
             Item.col <= Section.col_end,
         )
-        .group_by(Item.id)
         .order_by(TimePoint.time, Item.row, Item.col, Item.site)
+        .group_by(Item.id, Plate.id, TimePoint.id, Section.id, Cell.id,
+                  Stack.id, Modality.id, Compound.id, CompoundProperty.id)
     )
 
     return items

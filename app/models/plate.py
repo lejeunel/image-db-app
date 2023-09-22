@@ -28,7 +28,7 @@ class PlateSchema(ma.SQLAlchemyAutoSchema):
 
     @post_dump()
     def append_timepoints(self, data, **kwargs):
-        timepoints = db.session.query(TimePoint).filter(Plate.id == data["id"])
+        timepoints = db.session.query(Plate).get(data['id']).timepoints
         timepoints = TimePointSchema(many=True).dump(timepoints)
         data["timepoints"] = timepoints
         return data

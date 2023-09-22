@@ -31,6 +31,7 @@ class StackModalityAssociation(db.Model):
     stack_id = db.Column(db.ForeignKey("stack.id"), primary_key=True)
     modality_id = db.Column(db.ForeignKey("modality.id"), primary_key=True)
     chan = db.Column(db.Integer())
+    regexp = db.Column(db.String(50))
 
 
 class StackSchema(ma.SQLAlchemyAutoSchema):

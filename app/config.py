@@ -37,7 +37,7 @@ class Config:
         "row": r"^.*_([A-Z])[0-9][0-9]_.*$",
         "col": r"^.*_[A-Z]([0-9][0-9])_.*$",
         "site": r"^.*_s([0-9]?[0-9])_.*$",
-        "chan": r"^.*_w([0-9]?[0-9])_.*$",
+        "chan": r"^.*_w([0-9]).*$",
     }
     IGNORE_REGEXP = r"^.*_thumb.*$"
     VALID_REGEXP = r"^.*\.tiff?$"
