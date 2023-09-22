@@ -57,10 +57,6 @@ class ItemSchema(ma.SQLAlchemyAutoSchema):
         )
         return data
 
-    @post_dump()
-    def tags_to_list(self, data, **kwargs):
-        data["tags"] = data["tags"].split(",")
-        return data
 
 
 class Tag(db.Model):
