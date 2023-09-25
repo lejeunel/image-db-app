@@ -40,6 +40,7 @@ numpy = "^1.25.2"
 pandas = "^2.0.3"
 aws-error-utils = "^2.7.0"
 sqlalchemy-mptt = {git = "https://github.com/lowatt/sqlalchemy_mptt", rev = "41c49b4c9d95a81c854de2836a511a3c9ccc0019" }
+scikit-image = "^0.21.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.2.2"

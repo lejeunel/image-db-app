@@ -25,7 +25,6 @@ class RemoteItemView(View):
 
     @staticmethod
     def image_to_json(image: np.ndarray, width=800, height=800):
-        # TODO this is quite slow... even locally
         fig = px.imshow(image, contrast_rescaling='minmax')
         fig.update_xaxes(showticklabels=False).update_yaxes(showticklabels=False)
         fig.update_layout(width=width, height=height)
