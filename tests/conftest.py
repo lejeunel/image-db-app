@@ -6,6 +6,7 @@ from src.reader.test import TestReader
 from src.dummy_db import _populate_db
 from unittest.mock import patch, PropertyMock
 
+#
 
 class TestClient(testing.FlaskClient):
     def open(self, *args, **kwargs):
