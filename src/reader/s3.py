@@ -8,6 +8,10 @@ from botocore.client import ClientError as BotoClientError
 from ..exceptions import DownloadException, ParsingException
 from .base import BaseReader
 
+from PIL import Image
+from io import BytesIO
+import numpy as np
+from skimage.transform import resize
 
 def get_bucket_client():
     client = boto3.client("s3")
@@ -29,8 +33,9 @@ class S3Reader(BaseReader):
     Class that lists and reads image files on S3
     """
 
-    def __init__(self):
+    def __init__(self, size=(512, 512)):
         self.client = get_bucket_client()
+        self.size = size
 
     def __call__(self, uri) -> bytes:
         """
@@ -43,12 +48,17 @@ class S3Reader(BaseReader):
 
         try:
             body = client.get_object(Bucket=bucket, Key=uri.path[1:])["Body"]
+            image = Image.open(body)
+            image = np.array(image)
+            image = resize(image, self.size, anti_aliasing=True,
+                           preserve_range=True)
+            return image
+
         except BotoClientError as e:
             e = get_aws_error_info(e)
             raise DownloadException(message=e.message, payload={'operation': e.operation_name})
 
 
-        return body
 
     def list(self, uri) -> list[str]:
 

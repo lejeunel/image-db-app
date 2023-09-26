@@ -67,15 +67,15 @@ def get_items_with_meta():
         )
         .join(Plate, Plate.id == Item.plate_id)
         .join(TimePoint, TimePoint.id == Item.timepoint_id)
-        .join(Section, Plate.id == Section.plate_id)
+        .outerjoin(Section, Plate.id == Section.plate_id)
         .join(Cell, Cell.id == Section.cell_id)
         .join(Stack, Stack.id == Section.stack_id)
         .join(StackModalityAssociation, StackModalityAssociation.stack_id == Stack.id)
         .join(Modality, StackModalityAssociation.modality_id == Modality.id)
         .join(Compound, Section.compound_id == Compound.id)
         .join(CompoundProperty, CompoundProperty.id == Compound.property_id)
-        .join(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
-        .join(Tag, ItemTagAssociation.tag_id == Tag.id)
+        .outerjoin(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
+        .outerjoin(Tag, ItemTagAssociation.tag_id == Tag.id)
         .filter(
             Item.chan == StackModalityAssociation.chan,
             Item.row >= Section.row_start,
@@ -83,9 +83,10 @@ def get_items_with_meta():
             Item.col >= Section.col_start,
             Item.col <= Section.col_end,
         )
-        .order_by(TimePoint.time, Item.row, Item.col, Item.site)
+        .order_by(TimePoint.time, Item.row, Item.col, Item.site, Item.chan)
         .group_by(Item.id, Plate.id, TimePoint.id, Section.id, Cell.id,
-                  Stack.id, Modality.id, Compound.id, CompoundProperty.id)
+                  Stack.id, StackModalityAssociation.id, Modality.id,
+                  Compound.id, CompoundProperty.id)
     )
 
     return items

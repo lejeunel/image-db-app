@@ -6,7 +6,9 @@
 {% block content %}
 <h1>{{ typename }} / {{ name }}</h1>
 
+<div class="overflow-auto" style="max-height: 600px;">
 {{ table | safe }}
+</div>
 
 
 {% if items%}
