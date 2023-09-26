@@ -1,4 +1,4 @@
-from app import db
+from src import db
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from .cell import Cell

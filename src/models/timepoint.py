@@ -1,6 +1,6 @@
 import uuid
 
-from app import db, ma
+from src import db, ma
 from sqlalchemy import func
 from sqlalchemy_utils.types.uuid import UUIDType
 from flask import current_app

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from app.utils import record_exists
+from src.utils import record_exists
 from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint

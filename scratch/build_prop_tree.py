@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-from app import create_app, db
+from src import create_app, db
 import pandas as pd
 import json
 from rich import print
 
 app = create_app('prod')
 
-from app.models.compound import Compound, CompoundProperty, CompoundPropertyType
+from src.models.compound import Compound, CompoundProperty, CompoundPropertyType
 
 with app.app_context():
     cpds = db.session.query(Compound).all()

@@ -7,7 +7,7 @@ import json2table
 import numpy as np
 import plotly
 import plotly.express as px
-from app.api.v1.items import get_items_with_meta
+from src.api.v1.items import get_items_with_meta
 from flask import render_template
 from flask.views import View
 

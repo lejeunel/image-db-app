@@ -10,12 +10,11 @@ from ...models.section import Section
 from ...models.stack import Stack, StackModalityAssociation
 
 
-from app.utils import record_exists
+from src.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import func
 from sqlalchemy.sql.elements import literal_column
-from sqlalchemy import text
 from flask import current_app
 
 from ... import db

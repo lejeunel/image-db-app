@@ -58,7 +58,7 @@ def add_url_views(app, reader=None):
 
     app.register_blueprint(main_bp, url_prefix="/")
 
-    from app.views.remote_item import RemoteItemView
+    from src.views.remote_item import RemoteItemView
 
     from .models.cell import Cell, CellSchema
     from .models.compound import Compound, CompoundSchema
@@ -148,11 +148,11 @@ def create_app(mode):
 
     reader = S3Reader()
     if mode == "dev":
-        app.config.from_object("app.config.dev")
+        app.config.from_object("src.config.dev")
     elif mode == "prod":
-        app.config.from_object("app.config.prod")
+        app.config.from_object("src.config.prod")
     else:
-        app.config.from_object("app.config.test")
+        app.config.from_object("src.config.test")
         reader = TestReader()
 
     # set jinja filters
