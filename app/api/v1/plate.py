@@ -14,7 +14,7 @@ from ...models.item import ItemTagAssociation
 from ...models.plate import PlateSchema
 from . import admin_required, check_duplicate
 
-blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="")
+blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
 
 @blp.errorhandler(MyException)
 def parsing_exception(e):

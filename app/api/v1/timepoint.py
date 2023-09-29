@@ -6,10 +6,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db, parser
-from ...models.timepoint import TimePoint, TimePointSchema
 from ...models.plate import Plate
-from ...models.item import ItemTagAssociation
-
+from ...models.timepoint import TimePoint, TimePointSchema
 from . import admin_required, check_duplicate
 
 blp = Blueprint(
@@ -23,7 +21,7 @@ class TimePointAPI(MethodView):
 
     @blp.response(200, TimePointSchema)
     def get(self, id):
-        """Get plate"""
+        """Get timepoint"""
 
         res = record_exists(db, TimePoint, id)
 

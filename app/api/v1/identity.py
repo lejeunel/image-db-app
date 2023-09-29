@@ -6,7 +6,7 @@ from flask.views import MethodView
 
 from . import get_user_profile
 
-blp = Blueprint("Identity", "Identity", url_prefix="/api/v1/identity", description="")
+blp = Blueprint("Identity", "Identity", url_prefix="/api/v1/whoami", description="")
 
 
 @blp.route("/")
