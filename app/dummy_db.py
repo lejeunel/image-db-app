@@ -1,14 +1,14 @@
 
 def _populate_db():
-    from src import db, parser
-    from src.models.plate import Plate
-    from src.models.modality import Modality
-    from src.models.cell import Cell
-    from src.models.compound import Compound, CompoundProperty
-    from src.models.section import Section
-    from src.models.timepoint import TimePoint
-    from src.models.item import Tag, ItemTagAssociation
-    from src.models.stack import Stack, StackModalityAssociation
+    from app import db, parser
+    from app.models.plate import Plate
+    from app.models.modality import Modality
+    from app.models.cell import Cell
+    from app.models.compound import Compound, CompoundProperty
+    from app.models.section import Section
+    from app.models.timepoint import TimePoint
+    from app.models.item import Tag, ItemTagAssociation
+    from app.models.stack import Stack, StackModalityAssociation
 
     modalities = [
         Modality(name=n, target=t, comment='a comment')

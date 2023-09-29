@@ -8,11 +8,11 @@ from flask_smorest import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_mptt import mptt_sessionmaker
 
-from .dummy_db import _populate_db
-from .parser import FlaskParser
-from .reader.s3 import S3Reader
-from .reader.test import TestReader
-from .utils import datetimeformat, file_type
+from app.dummy_db import _populate_db
+from app.parser import FlaskParser
+from app.reader.s3 import S3Reader
+from app.reader.test import TestReader
+from app.utils import datetimeformat, file_type
 
 
 # subclass the db manager and insert the wrapper at session creation
@@ -40,7 +40,7 @@ def register_api_blueprints(app, restapi):
     with app.app_context():
 
         from .api.v1 import (cell, compound, identity, items, modality, plate,
-                             section, stack, tag)
+                             section, stack, tag, timepoint)
 
         restapi.register_blueprint(modality.blp)
         restapi.register_blueprint(compound.blp)
@@ -51,6 +51,7 @@ def register_api_blueprints(app, restapi):
         restapi.register_blueprint(cell.blp)
         restapi.register_blueprint(identity.blp)
         restapi.register_blueprint(items.blp)
+        restapi.register_blueprint(timepoint.blp)
 
 
 def add_url_views(app, reader=None):
@@ -58,7 +59,7 @@ def add_url_views(app, reader=None):
 
     app.register_blueprint(main_bp, url_prefix="/")
 
-    from src.views.remote_item import RemoteItemView
+    from app.views.remote_item import RemoteItemView
 
     from .models.cell import Cell, CellSchema
     from .models.compound import Compound, CompoundSchema
@@ -148,11 +149,11 @@ def create_app(mode):
 
     reader = S3Reader()
     if mode == "dev":
-        app.config.from_object("src.config.dev")
+        app.config.from_object("app.config.dev")
     elif mode == "prod":
-        app.config.from_object("src.config.prod")
+        app.config.from_object("app.config.prod")
     else:
-        app.config.from_object("src.config.test")
+        app.config.from_object("app.config.test")
         reader = TestReader()
 
     # set jinja filters

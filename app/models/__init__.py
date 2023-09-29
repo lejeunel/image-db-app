@@ -1,4 +1,4 @@
-from src import db
+from app import db
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from .cell import Cell
@@ -19,7 +19,7 @@ Item.plate = db.relationship(
 TimePoint.items = db.relationship("Item")
 Cell.sections = db.relationship("Section")
 Compound.sections = db.relationship("Section")
-Plate.timepoints = db.relationship("TimePoint")
+Plate.timepoints = db.relationship("TimePoint", cascade='all, delete')
 Stack.sections = db.relationship("Section")
 Stack.stack_modality_assoc = db.relationship("StackModalityAssociation")
 Modality.stack_modality_assoc = db.relationship("StackModalityAssociation")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from src.utils import record_exists
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from flask_smorest import abort

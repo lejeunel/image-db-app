@@ -1,9 +1,9 @@
 import uuid
 
-from src import db, ma
-from src.models.compound import Compound
-from src.models.stack import Stack
-from src.utils import record_exists
+from app import db, ma
+from app.models.compound import Compound
+from app.models.stack import Stack
+from app.utils import record_exists
 from marshmallow import post_dump, post_load, pre_load
 from sqlalchemy_utils.types.uuid import UUIDType
 

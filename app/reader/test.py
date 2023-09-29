@@ -1,4 +1,4 @@
-from src.reader.base import BaseReader
+from app.reader.base import BaseReader
 
 class TestReader(BaseReader):
     """

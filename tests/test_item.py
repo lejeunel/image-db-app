@@ -3,9 +3,10 @@ from urllib.parse import urlencode
 def test_get_section_timepoint(client):
     res = client.get(f"plate/").json[0]
     plate_id = res['id']
-    tp_ids = [tp['id'] for tp in res['timepoints']]
     section_id = client.get(f'plate/{plate_id}/sections').json[0]['id']
-    for tp_id in tp_ids:
+    timepoints = client.get(f'plate/{plate_id}/timepoints').json
+    timepoints_id = [t['id'] for t in timepoints]
+    for tp_id in timepoints_id:
         res = client.get(f"items/?section_id={section_id}&timepoint_id={tp_id}")
         assert all([im['timepoint_id'] == tp_id for im in res.json])
         assert all([im['section_id'] == section_id for im in res.json])
@@ -87,7 +88,7 @@ def test_apply_new_tags_with_params(client):
     plate = client.get('plate/').json[0]
     plate_id = plate['id']
     section_id = client.get(f'plate/{plate_id}/sections').json[0]['id']
-    timepoint_id = plate['timepoints'][0]['id']
+    timepoint_id = client.get(f'plate/{plate_id}/timepoints').json[0]['id']
     params = urlencode({'section_id': section_id, 'timepoint_id': timepoint_id})
 
     res = client.post("items/tag/tag_3?{}".format(params))

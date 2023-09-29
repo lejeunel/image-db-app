@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from src import create_app, db
+from app import create_app, db
 import re
 from rich import print
 
 app = create_app('prod')
 
-from src.models.item import Item
+from app.models.item import Item
 
 with app.app_context():
     items = db.session.query(Item).all()

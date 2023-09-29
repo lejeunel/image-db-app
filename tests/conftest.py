@@ -2,8 +2,8 @@ import pytest
 from flask import testing
 from flask import Flask
 from flask_smorest.pagination import PaginationMixin
-from src.reader.test import TestReader
-from src.dummy_db import _populate_db
+from app.reader.test import TestReader
+from app.dummy_db import _populate_db
 from unittest.mock import patch, PropertyMock
 
 #
@@ -17,7 +17,7 @@ class TestClient(testing.FlaskClient):
 
 @pytest.fixture()
 def app():
-    from src import db, restapi, parser, register_api_blueprints, ma
+    from app import db, restapi, parser, register_api_blueprints, ma
 
     app = Flask(__name__, instance_relative_config=False)
 
@@ -25,7 +25,7 @@ def app():
     # with patch.object(PaginationMixin, "DEFAULT_PAGINATION_PARAMETERS", new_callable=PropertyMock) as attr_mock:
     #     attr_mock.return_value = {"page": 1, "page_size": 100000, "max_page_size": 1000000}
 
-    app.config.from_object("src.config.test")
+    app.config.from_object("app.config.test")
     with app.app_context():
         db.init_app(app)
         ma.init_app(app)

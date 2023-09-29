@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from src import db, ma
+from app import db, ma
 from marshmallow import post_dump, pre_dump
 from sqlalchemy import Enum
 from sqlalchemy_mptt.mixins import BaseNestedSets

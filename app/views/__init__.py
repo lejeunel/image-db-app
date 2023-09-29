@@ -3,9 +3,9 @@ import json
 import json2table
 from flask import render_template, request
 from flask.views import View
-from src.api.v1.items import get_items_with_meta
-from src import db
-from src.models.item import ItemSchema
+from app.api.v1.items import get_items_with_meta
+from app import db
+from app.models.item import ItemSchema
 
 
 def make_item_pagination(items, page, items_per_page):

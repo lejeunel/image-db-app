@@ -1,9 +1,9 @@
 import uuid
 
-from src import db, ma
-from src.models.compound import CompoundProperty
+from app import db, ma
+from app.models.compound import CompoundProperty
 from .utils import _concat_properties
-from marshmallow import post_dump, pre_dump, pre_load, post_load
+from marshmallow import post_dump
 from sqlalchemy_utils.types.uuid import UUIDType
 
 

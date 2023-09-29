@@ -1,6 +1,6 @@
 import uuid
 
-from src import db, ma
+from app import db, ma
 from marshmallow import post_dump
 from sqlalchemy import func
 from sqlalchemy_utils.types.uuid import UUIDType
@@ -24,11 +24,13 @@ class PlateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Plate
 
-    timepoints = ma.List(ma.Nested(TimePointSchema))
+    # timepoints = ma.List(ma.Nested(TimePointSchema))
 
-    @post_dump()
-    def append_timepoints(self, data, **kwargs):
-        timepoints = db.session.query(Plate).get(data['id']).timepoints
-        timepoints = TimePointSchema(many=True).dump(timepoints)
-        data["timepoints"] = timepoints
-        return data
+    _links = ma.Hyperlinks(
+        {
+            "self": ma.URLFor("Plate.PlateAPI", values=dict(id="<id>")),
+            "collection": ma.URLFor("Plate.PlatesAPI"),
+            "timepoints": ma.URLFor('Plate.get_timepoints', values={'id': '<id>'}),
+            "sections": ma.URLFor('Section.SectionsAPI', values={'id': '<id>'}),
+        }
+    )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from flask_smorest import Blueprint
-from src.utils import record_exists
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import abort
 
@@ -38,22 +38,22 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
     return coordinates
 
 
-@blp.route("/plate/<uuid:plate_id>/sections")
+@blp.route("/plate/<uuid:id>/sections")
 class SectionsAPI(MethodView):
     @blp.response(200, SectionSchema(many=True))
-    def get(self, plate_id):
+    def get(self, id):
         """Get all sections from plate ID"""
 
-        res = record_exists(db,Plate, plate_id)
+        res = record_exists(db,Plate, id)
 
         return res.first().sections
 
     @admin_required
     @blp.response(204)
-    def delete(self, plate_id):
+    def delete(self, id):
         """Delete all sections"""
 
-        res = record_exists(db,Plate, plate_id)
+        res = record_exists(db,Plate, id)
         for s in res.first().sections:
             res = SectionAPI._delete(s.id)
 

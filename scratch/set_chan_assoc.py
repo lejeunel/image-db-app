@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from src import create_app, db
+from app import create_app, db
 import re
 from rich import print
 
 app = create_app('prod')
 
-from src.models.stack import StackModalityAssociation
+from app.models.stack import StackModalityAssociation
 
 with app.app_context():
     assocs = db.session.query(StackModalityAssociation).all()

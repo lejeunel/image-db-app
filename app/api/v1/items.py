@@ -10,7 +10,7 @@ from ...models.section import Section
 from ...models.stack import Stack, StackModalityAssociation
 
 
-from src.utils import record_exists
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from sqlalchemy import func
@@ -140,7 +140,7 @@ def apply_query_args(db, items, query_args):
 
 
 @blp.route("/")
-class Items(MethodView):
+class ItemsAPI(MethodView):
     @blp.arguments(ItemSchema, location="query")
     @blp.paginate()
     @blp.response(200, ItemSchema(many=True))

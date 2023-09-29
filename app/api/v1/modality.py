@@ -5,13 +5,13 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from src.models.modality import Modality, ModalitySchema
+from app.models.modality import Modality, ModalitySchema
 from . import (
     admin_required,
     check_dependencies,
     check_duplicate,
 )
-from src.utils import record_exists
+from app.utils import record_exists
 
 blp = Blueprint(
     "Modality",

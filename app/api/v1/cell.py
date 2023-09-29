@@ -11,7 +11,7 @@ from . import (
     check_dependencies,
     check_duplicate,
 )
-from src.utils import record_exists
+from app.utils import record_exists
 
 blp = Blueprint("Cell", "Cell", url_prefix="/api/v1/cell", description="")
 

@@ -6,7 +6,7 @@ from flask import url_for
 from ..models.plate import PlateSchema
 from ..models.section import SectionSchema
 from . import GenericDetailedView
-from src import db
+from app import db
 
 
 def make_link_compound(cpd):
