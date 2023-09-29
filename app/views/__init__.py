@@ -35,6 +35,7 @@ class GenericDetailedView(View):
         self.schema = schema
         self.items_per_page = items_per_page
         self.template = "detail/generic.html"
+        self.exclude_fields = ['_links']
 
     def infer_name(self, data):
         if "name" in data:
@@ -43,6 +44,7 @@ class GenericDetailedView(View):
 
     def make_summary_table(self, obj):
         data = self.schema().dump(obj)
+        data = {k:v for k,v in data.items() if k not in self.exclude_fields}
         table = json2table.convert(
             data,
             build_direction="LEFT_TO_RIGHT",
@@ -101,7 +103,7 @@ class ListView(View):
         self.schema = schema
         self.name = model.__name__
         self.template = "overview/generic.html"
-        self.exclude_fields = ["timepoints", 'property_id']
+        self.exclude_fields = ["timepoints", 'property_id', '_links']
 
     @staticmethod
     def get_columns(data: list[dict]):

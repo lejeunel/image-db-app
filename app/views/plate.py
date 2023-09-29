@@ -76,6 +76,7 @@ class DetailedPlateView(GenericDetailedView):
 
     def make_summary_table(self, plate):
         plate_summary = make_plate_summary(plate)
+        plate_summary = {k:v for k,v in plate_summary.items() if k not in self.exclude_fields}
         table = json2table.convert(
             plate_summary,
             build_direction="LEFT_TO_RIGHT",
