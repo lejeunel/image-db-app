@@ -3,10 +3,9 @@ from collections import OrderedDict
 import json2table
 from flask import url_for
 
-from ..models.plate import PlateSchema
-from ..models.section import SectionSchema
+from ..schemas.plate import PlateSchema
+from ..schemas.section import SectionSchema
 from . import GenericDetailedView
-from app import db
 
 
 def make_link_compound(cpd):

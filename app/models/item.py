@@ -1,9 +1,6 @@
 import uuid
 
 from app import db, ma
-from app.models.compound import CompoundProperty
-from .utils import _concat_properties
-from marshmallow import post_dump
 from sqlalchemy_utils.types.uuid import UUIDType
 
 
@@ -23,41 +20,6 @@ class Item(db.Model):
     timepoint_id = db.Column(db.ForeignKey("timepoint.id"))
 
 
-class ItemSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Item
-        additional = (
-            "plate_name",
-            "cell_name",
-            "cell_code",
-            "stack_name",
-            "modality_name",
-            "modality_target",
-            "compound_concentration",
-            "compound_name",
-            "compound_property_id",
-            "compound_moa_group",
-            "compound_moa_subgroup",
-            "compound_target",
-            "timepoint_time",
-            "timepoint_id",
-            "section_id",
-            "tags",
-        )
-
-    @post_dump()
-    def concat_compound_props(self, data, **kwargs):
-        data = _concat_properties(
-            db,
-            CompoundProperty,
-            data,
-            prefix="compound_",
-            id_field="compound_property_id",
-            **kwargs,
-        )
-        return data
-
-
 
 class Tag(db.Model):
     __tablename__ = "tag"
@@ -67,12 +29,6 @@ class Tag(db.Model):
 
     def __repr__(self):
         return f"<Tag {self.name}>"
-
-
-class TagSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Tag
-
 
 class ItemTagAssociation(db.Model):
     """

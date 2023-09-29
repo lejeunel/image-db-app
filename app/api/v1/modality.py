@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
-import marshmallow as ma
+from app.models.modality import Modality
+from app.schemas.modality import ModalitySchema
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from app.models.modality import Modality, ModalitySchema
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.utils import record_exists
+from . import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
     "Modality",

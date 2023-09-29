@@ -11,7 +11,7 @@ from app.api.v1.items import get_items_with_meta
 from flask import render_template
 from flask.views import View
 
-from ..models.item import ItemSchema
+from ..schemas.item import ItemSchema
 from ..reader.base import BaseReader
 
 

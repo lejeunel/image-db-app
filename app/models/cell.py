@@ -1,6 +1,6 @@
 import uuid
 
-from app import db, ma
+from app import db
 from sqlalchemy_utils.types.uuid import UUIDType
 
 
@@ -13,7 +13,3 @@ class Cell(db.Model):
     def __repr__(self):
         return f"<Cell {self.name}>"
 
-
-class CellSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Cell

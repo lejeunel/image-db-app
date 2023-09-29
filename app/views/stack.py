@@ -2,7 +2,8 @@
 import json2table
 from flask import url_for
 
-from ..models.stack import Stack, StackSchema
+from ..models.stack import Stack
+from ..schemas import StackSchema
 from . import GenericDetailedView
 
 

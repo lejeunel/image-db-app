@@ -2,12 +2,11 @@
 
 from app.utils import record_exists
 from flask.views import MethodView
-from flask_smorest import Blueprint
-from flask_smorest import abort
+from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models.modality import Modality
-from ...models.stack import Stack, StackModalityAssociation, StackSchema
+from ...models import Modality, Stack, StackModalityAssociation
+from ...schemas import StackSchema
 from . import admin_required, check_duplicate
 
 blp = Blueprint(

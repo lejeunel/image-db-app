@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
-import marshmallow as ma
+from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from ...models.cell import Cell, CellSchema
-from . import (
-    admin_required,
-    check_dependencies,
-    check_duplicate,
-)
-from app.utils import record_exists
+from ... import schemas as sch
+from ...models.cell import Cell
+from . import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint("Cell", "Cell", url_prefix="/api/v1/cell", description="")
 
@@ -20,7 +16,7 @@ blp = Blueprint("Cell", "Cell", url_prefix="/api/v1/cell", description="")
 class CellAPI(MethodView):
     model = Cell
 
-    @blp.response(200, CellSchema)
+    @blp.response(200, sch.CellSchema)
     def get(self, id):
         """Get cell"""
 
@@ -28,8 +24,8 @@ class CellAPI(MethodView):
         return res
 
     @admin_required
-    @blp.arguments(CellSchema)
-    @blp.response(200, CellSchema)
+    @blp.arguments(sch.CellSchema)
+    @blp.response(200, sch.CellSchema)
     def patch(self, update_data, id):
         """Update cell"""
         res = CellAPI._update(id, update_data)
@@ -68,7 +64,7 @@ class CellAPI(MethodView):
 
 @blp.route("/")
 class CellsAPI(MethodView):
-    @blp.response(200, CellSchema(many=True))
+    @blp.response(200, sch.CellSchema(many=True))
     def get(self):
         """Get all cells"""
 
@@ -76,8 +72,8 @@ class CellsAPI(MethodView):
         return item
 
     @admin_required
-    @blp.arguments(CellSchema)
-    @blp.response(201, CellSchema)
+    @blp.arguments(sch.CellSchema)
+    @blp.response(201, sch.CellSchema)
     def post(self, data):
         """Add a new cell"""
         res = CellAPI._create(data)

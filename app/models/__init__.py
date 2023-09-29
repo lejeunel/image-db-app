@@ -2,8 +2,8 @@ from app import db
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from .cell import Cell
-from .compound import Compound
-from .item import Item
+from .compound import Compound, CompoundProperty, CompoundPropertyType
+from .item import Item, Tag, ItemTagAssociation
 from .modality import Modality
 from .plate import Plate
 from .section import Section

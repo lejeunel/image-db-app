@@ -1,10 +1,10 @@
-from app.models.compound import (Compound, CompoundProperty,
-                                 CompoundPropertySchema, CompoundSchema)
 from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
+from ... import models as mdl
+from ... import schemas as sch
 from . import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
@@ -15,9 +15,9 @@ blp = Blueprint(
 @blp.route("/<uuid:id>")
 class CompoundAPI(MethodView):
 
-    model = Compound
+    model = mdl.Compound
 
-    @blp.response(200, CompoundSchema)
+    @blp.response(200, sch.CompoundSchema)
     def get(self, id):
         """Get compound"""
 
@@ -25,8 +25,8 @@ class CompoundAPI(MethodView):
         return res
 
     @admin_required
-    @blp.arguments(CompoundSchema)
-    @blp.response(200, CompoundSchema)
+    @blp.arguments(sch.CompoundSchema)
+    @blp.response(200, sch.CompoundSchema)
     def patch(self, update_data, id):
         """Update compound"""
         res = CompoundAPI._update(id, update_data)
@@ -43,9 +43,9 @@ class CompoundAPI(MethodView):
 
     @staticmethod
     def _create(data):
-        check_duplicate(db.session, Compound, name=data["name"])
+        check_duplicate(db.session, mdl.Compound, name=data["name"])
 
-        cpd = Compound(**data)
+        cpd = mdl.Compound(**data)
 
         db.session.add(cpd)
         db.session.commit()
@@ -54,41 +54,41 @@ class CompoundAPI(MethodView):
     @staticmethod
     def _update(id, data):
 
-        record_exists(db,Compound, id)
+        record_exists(db,mdl.Compound, id)
 
-        cpd = Compound.query.filter_by(id=id)
+        cpd = mdl.Compound.query.filter_by(id=id)
         cpd.update(data)
         db.session.commit()
         return cpd.first()
 
     @staticmethod
     def _can_delete(id):
-        record_exists(db,Compound, value=id, field="id")
-        check_dependencies(Compound, value=id, field="id", remote="sections")
+        record_exists(db,mdl.Compound, value=id, field="id")
+        check_dependencies(mdl.Compound, value=id, field="id", remote="sections")
 
     @staticmethod
     def _delete(id):
 
         CompoundAPI._can_delete(id)
 
-        cpd = Compound.query.filter_by(id=id).first()
+        cpd = mdl.Compound.query.filter_by(id=id).first()
         db.session.delete(cpd)
         db.session.commit()
 
 
 @blp.route("/")
 class CompoundsAPI(MethodView):
-    model = Compound
+    model = mdl.Compound
 
-    @blp.response(200, CompoundSchema(many=True))
+    @blp.response(200, sch.CompoundSchema(many=True))
     def get(self):
         """Get all compounds"""
 
-        return Compound.query.all()
+        return mdl.Compound.query.all()
 
     @admin_required
-    @blp.arguments(CompoundSchema)
-    @blp.response(201, CompoundSchema)
+    @blp.arguments(sch.CompoundSchema)
+    @blp.response(201, sch.CompoundSchema)
     def post(self, data):
         """Add a new compound"""
 
@@ -98,21 +98,21 @@ class CompoundsAPI(MethodView):
 
 @blp.route("/prop/")
 class CompoundPropertyAPI(MethodView):
-    model = CompoundProperty
+    model = mdl.CompoundProperty
 
-    @blp.response(200, CompoundPropertySchema(many=True))
+    @blp.response(200, sch.CompoundPropertySchema(many=True))
     def get(self):
         """Get all compound properties"""
 
-        return CompoundProperty.query.all()
+        return mdl.CompoundProperty.query.all()
 
     @admin_required
-    @blp.arguments(CompoundPropertySchema)
-    @blp.response(201, CompoundPropertySchema)
+    @blp.arguments(sch.CompoundPropertySchema)
+    @blp.response(201, sch.CompoundPropertySchema)
     def post(self, data):
         """Add a new compound property"""
 
-        prop = CompoundProperty(**data)
+        prop = mdl.CompoundProperty(**data)
         db.session.add(prop)
         db.session.commit()
 

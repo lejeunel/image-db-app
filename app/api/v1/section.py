@@ -6,11 +6,8 @@ from flask.views import MethodView
 from flask_smorest import abort
 
 from ... import db
-from ...models.cell import Cell
-from ...models.compound import Compound
-from ...models.plate import Plate
-from ...models.section import Section, SectionSchema
-from ...models.stack import Stack
+from ... import models as mdl
+from ... import schemas as sch
 from . import admin_required
 
 blp = Blueprint(
@@ -19,6 +16,7 @@ blp = Blueprint(
     url_prefix="/api/v1",
     description="Spatially contiguous subset of wells in a plate",
 )
+
 
 def range_subset(range1, range2):
     """Whether range1 is a subset of range2."""
@@ -40,11 +38,11 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
 
 @blp.route("/plate/<uuid:id>/sections")
 class SectionsAPI(MethodView):
-    @blp.response(200, SectionSchema(many=True))
+    @blp.response(200, sch.SectionSchema(many=True))
     def get(self, id):
         """Get all sections from plate ID"""
 
-        res = record_exists(db,Plate, id)
+        res = record_exists(db, mdl.Plate, id)
 
         return res.first().sections
 
@@ -53,17 +51,17 @@ class SectionsAPI(MethodView):
     def delete(self, id):
         """Delete all sections"""
 
-        res = record_exists(db,Plate, id)
+        res = record_exists(db, mdl.Plate, id)
         for s in res.first().sections:
             res = SectionAPI._delete(s.id)
 
     @admin_required
-    @blp.arguments(SectionSchema)
-    @blp.response(201, SectionSchema)
-    def post(self, data, plate_id):
+    @blp.arguments(sch.SectionSchema)
+    @blp.response(201, sch.SectionSchema)
+    def post(self, data, id):
         """Add a new section"""
 
-        data["plate_id"] = plate_id
+        data["plate_id"] = id
         res = SectionAPI._create(data)
 
         return res
@@ -71,17 +69,17 @@ class SectionsAPI(MethodView):
 
 @blp.route("/section/<uuid:id>")
 class SectionAPI(MethodView):
-    @blp.response(200, SectionSchema)
+    @blp.response(200, sch.SectionSchema)
     def get(self, id):
         """Get section"""
 
-        res = record_exists(db,Section, id)
+        res = record_exists(db, mdl.Section, id)
 
         return res.first()
 
     @admin_required
-    @blp.arguments(SectionSchema)
-    @blp.response(200, SectionSchema)
+    @blp.arguments(sch.SectionSchema)
+    @blp.response(200, sch.SectionSchema)
     def patch(self, update_data, id):
         """Update section"""
         res = SectionAPI._update(id, update_data).first()
@@ -104,7 +102,7 @@ class SectionAPI(MethodView):
         """
 
         # get row and col range of plate
-        plate = db.session.query(Plate).filter_by(id=a["plate_id"]).first()
+        plate = db.session.query(mdl.Plate).filter_by(id=a["plate_id"]).first()
         items = plate.items
         rows = [im.row for im in items]
         cols = [im.col for im in items]
@@ -139,19 +137,20 @@ class SectionAPI(MethodView):
 
     @staticmethod
     def _create(data):
-
-        record_exists(db,Cell, value=data["cell_id"], field="id")
-        record_exists(db,Compound, value=data["compound_id"], field="id")
-        record_exists(db,Stack, value=data["stack_id"], field="id")
+        record_exists(db, mdl.Cell, value=data["cell_id"], field="id")
+        record_exists(db, mdl.Compound, value=data["compound_id"], field="id")
+        record_exists(db, mdl.Stack, value=data["stack_id"], field="id")
 
         SectionAPI._check_range(data["plate_id"], data)
 
         # check for overlap with existing sections of same plate
-        existing_sections = db.session.query(Plate).filter_by(id=data["plate_id"]).first().sections
+        existing_sections = (
+            db.session.query(mdl.Plate).filter_by(id=data["plate_id"]).first().sections
+        )
         for s in existing_sections:
             SectionAPI._check_overlap(s.__dict__, data)
 
-        section = Section(**data)
+        section = mdl.Section(**data)
         db.session.add(section)
         db.session.commit()
 
@@ -159,8 +158,7 @@ class SectionAPI(MethodView):
 
     @staticmethod
     def _delete(id):
-
-        res = record_exists(db,Section, id, field="id").first()
+        res = record_exists(db, mdl.Section, id, field="id").first()
 
         db.session.delete(res)
         db.session.commit()
@@ -169,23 +167,27 @@ class SectionAPI(MethodView):
     def _update(id, data):
         if "cell_code" in data.keys():
             data["cell_id"] = (
-                record_exists(db,Cell, value=data["cell_code"], field="code").first().id
+                record_exists(db, mdl.Cell, value=data["cell_code"], field="code")
+                .first()
+                .id
             )
             data.pop("cell_code", None)
         if "compound_name" in data.keys():
             data["compound_id"] = (
-                record_exists(db,Compound, value=data["compound_name"], field="name")
+                record_exists(db, mdl.Compound, value=data["compound_name"], field="name")
                 .first()
                 .id
             )
             data.pop("compound_name", None)
         if "stack_name" in data.keys():
             data["stack_id"] = (
-                record_exists(db,Stack, value=data["stack_name"], field="name").first().id
+                record_exists(db, mdl.Stack, value=data["stack_name"], field="name")
+                .first()
+                .id
             )
             data.pop("stack_name", None)
 
-        elem = db.session.query(Section).filter_by(id=id)
+        elem = db.session.query(mdl.Section).filter_by(id=id)
 
         if data:
             elem.update(data)

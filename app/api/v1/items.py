@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 
-from ...models.item import Item, ItemSchema, Tag, ItemTagAssociation
-from ...models.plate import Plate
-from ...models.cell import Cell
-from ...models.modality import Modality
-from ...models.compound import Compound, CompoundProperty
-from ...models.timepoint import TimePoint
-from ...models.section import Section
-from ...models.stack import Stack, StackModalityAssociation
-
+from ... import models as mdl
+from ... import schemas as sch
 
 from app.utils import record_exists
 from flask.views import MethodView
@@ -34,9 +27,9 @@ def get_items_with_meta():
     # aggregate tags (sqlite and postgre)
     url = str(db.engine.url)
     if "sqlite" in url:
-        my_string_agg_fn = func.group_concat(Tag.name, ",").label("tags")
+        my_string_agg_fn = func.group_concat(mdl.Tag.name, ",").label("tags")
     elif "postgre" in url:
-        my_string_agg_fn = func.string_agg(Tag.name, literal_column("','")).label(
+        my_string_agg_fn = func.string_agg(mdl.Tag.name, literal_column("','")).label(
             "tags"
         )
     else:
@@ -44,49 +37,49 @@ def get_items_with_meta():
 
     items = (
         db.session.query(
-            Item.id,
-            Item.uri,
-            Item.row,
-            Item.col,
-            Item.site,
-            Item.chan,
-            Plate.id.label("plate_id"),
-            Plate.name.label("plate_name"),
-            Cell.name.label("cell_name"),
-            Cell.code.label("cell_code"),
-            Stack.name.label("stack"),
-            Modality.name.label("modality_name"),
-            Modality.target.label("modality_target"),
-            Section.compound_concentration.label("compound_concentration"),
-            Compound.name.label("compound_name"),
-            CompoundProperty.id.label("compound_property_id"),
-            TimePoint.time.label("timepoint_time"),
-            TimePoint.id.label("timepoint_id"),
-            Section.id.label("section_id"),
+            mdl.Item.id,
+            mdl.Item.uri,
+            mdl.Item.row,
+            mdl.Item.col,
+            mdl.Item.site,
+            mdl.Item.chan,
+            mdl.Plate.id.label("plate_id"),
+            mdl.Plate.name.label("plate_name"),
+            mdl.Cell.name.label("cell_name"),
+            mdl.Cell.code.label("cell_code"),
+            mdl.Stack.name.label("stack"),
+            mdl.Modality.name.label("modality_name"),
+            mdl.Modality.target.label("modality_target"),
+            mdl.Section.compound_concentration.label("compound_concentration"),
+            mdl.Compound.name.label("compound_name"),
+            mdl.CompoundProperty.id.label("compound_property_id"),
+            mdl.TimePoint.time.label("timepoint_time"),
+            mdl.TimePoint.id.label("timepoint_id"),
+            mdl.Section.id.label("section_id"),
             my_string_agg_fn,
         )
-        .join(Plate, Plate.id == Item.plate_id)
-        .join(TimePoint, TimePoint.id == Item.timepoint_id)
-        .outerjoin(Section, Plate.id == Section.plate_id)
-        .join(Cell, Cell.id == Section.cell_id)
-        .join(Stack, Stack.id == Section.stack_id)
-        .join(StackModalityAssociation, StackModalityAssociation.stack_id == Stack.id)
-        .join(Modality, StackModalityAssociation.modality_id == Modality.id)
-        .join(Compound, Section.compound_id == Compound.id)
-        .join(CompoundProperty, CompoundProperty.id == Compound.property_id)
-        .outerjoin(ItemTagAssociation, ItemTagAssociation.item_id == Item.id)
-        .outerjoin(Tag, ItemTagAssociation.tag_id == Tag.id)
+        .join(mdl.Plate, mdl.Plate.id == mdl.Item.plate_id)
+        .join(mdl.TimePoint, mdl.TimePoint.id == mdl.Item.timepoint_id)
+        .outerjoin(mdl.Section, mdl.Plate.id == mdl.Section.plate_id)
+        .join(mdl.Cell, mdl.Cell.id == mdl.Section.cell_id)
+        .join(mdl.Stack, mdl.Stack.id == mdl.Section.stack_id)
+        .join(mdl.StackModalityAssociation, mdl.StackModalityAssociation.stack_id == mdl.Stack.id)
+        .join(mdl.Modality, mdl.StackModalityAssociation.modality_id == mdl.Modality.id)
+        .join(mdl.Compound, mdl.Section.compound_id == mdl.Compound.id)
+        .join(mdl.CompoundProperty, mdl.CompoundProperty.id == mdl.Compound.property_id)
+        .outerjoin(mdl.ItemTagAssociation, mdl.ItemTagAssociation.item_id == mdl.Item.id)
+        .outerjoin(mdl.Tag, mdl.ItemTagAssociation.tag_id == mdl.Tag.id)
         .filter(
-            Item.chan == StackModalityAssociation.chan,
-            Item.row >= Section.row_start,
-            Item.row <= Section.row_end,
-            Item.col >= Section.col_start,
-            Item.col <= Section.col_end,
+            mdl.Item.chan == mdl.StackModalityAssociation.chan,
+            mdl.Item.row >= mdl.Section.row_start,
+            mdl.Item.row <= mdl.Section.row_end,
+            mdl.Item.col >= mdl.Section.col_start,
+            mdl.Item.col <= mdl.Section.col_end,
         )
-        .order_by(TimePoint.time, Item.row, Item.col, Item.site, Item.chan)
-        .group_by(Item.id, Plate.id, TimePoint.id, Section.id, Cell.id,
-                  Stack.id, StackModalityAssociation.id, Modality.id,
-                  Compound.id, CompoundProperty.id)
+        .order_by(mdl.TimePoint.time, mdl.Item.row, mdl.Item.col, mdl.Item.site, mdl.Item.chan)
+        .group_by(mdl.Item.id, mdl.Plate.id, mdl.TimePoint.id, mdl.Section.id, mdl.Cell.id,
+                  mdl.Stack.id, mdl.StackModalityAssociation.id, mdl.Modality.id,
+                  mdl.Compound.id, mdl.CompoundProperty.id)
     )
 
     return items
@@ -123,16 +116,16 @@ def apply_query_args(db, items, query_args):
             items = items.filter(field == v)
         else:
             # case 4: fetch in compound_property for matching attribute
-            compound_property = CompoundProperty.query.filter(
-                CompoundProperty.type == field
-            ).filter(CompoundProperty.value == v)
+            compound_property = mdl.CompoundProperty.query.filter(
+                mdl.CompoundProperty.type == field
+            ).filter(mdl.CompoundProperty.value == v)
 
             found_matching_property = compound_property.count() > 0
             if found_matching_property:
                 matching_property = compound_property.first()
                 items = items.filter(
-                    CompoundProperty.left >= matching_property.left
-                ).filter(CompoundProperty.right <= matching_property.right)
+                    mdl.CompoundProperty.left >= matching_property.left
+                ).filter(mdl.CompoundProperty.right <= matching_property.right)
             else:
                 items = items.filter(False)
 
@@ -141,9 +134,9 @@ def apply_query_args(db, items, query_args):
 
 @blp.route("/")
 class ItemsAPI(MethodView):
-    @blp.arguments(ItemSchema, location="query")
+    @blp.arguments(sch.ItemSchema, location="query")
     @blp.paginate()
-    @blp.response(200, ItemSchema(many=True))
+    @blp.response(200, sch.ItemSchema(many=True))
     def get(self, args, pagination_parameters):
         """Get items
 
@@ -163,33 +156,33 @@ class ItemsAPI(MethodView):
 
 @blp.route("/tag/<tag_name>")
 class ItemTagger(MethodView):
-    @blp.arguments(ItemSchema, location="query")
+    @blp.arguments(sch.ItemSchema, location="query")
     @blp.paginate()
     @blp.response(200)
     def post(self, args, tag_name, pagination_parameters):
         """Tag items"""
 
-        record_exists(db, Tag, tag_name, field="name")
-        id = db.session.query(Tag).filter(Tag.name == tag_name).first().id
+        record_exists(db, mdl.Tag, tag_name, field="name")
+        id = db.session.query(mdl.Tag).filter(mdl.Tag.name == tag_name).first().id
 
         items = get_items_with_meta()
         items = apply_query_args(db, items, args).all()
 
         pagination_parameters.item_count = len(items)
-        assocs = [ItemTagAssociation(item_id=i.id, tag_id=id) for i in items]
+        assocs = [mdl.ItemTagAssociation(item_id=i.id, tag_id=id) for i in items]
 
         db.session.add_all(assocs)
         db.session.commit()
         return ["applied tag {}".format(tag_name)]
 
-    @blp.arguments(ItemSchema, location="query")
+    @blp.arguments(sch.ItemSchema, location="query")
     @blp.paginate()
-    @blp.response(200, ItemSchema(many=True))
+    @blp.response(200, sch.ItemSchema(many=True))
     def delete(self, args, tag_name, pagination_parameters):
         """Remove a tag from (set of) items"""
 
-        record_exists(db, Tag, tag_name, field="name")
-        tag_id = db.session.query(Tag).filter(Tag.name == tag_name).first().id
+        record_exists(db, mdl.Tag, tag_name, field="name")
+        tag_id = db.session.query(mdl.Tag).filter(mdl.Tag.name == tag_name).first().id
 
         items = get_items_with_meta()
         items = apply_query_args(db, items, args)
@@ -197,9 +190,9 @@ class ItemTagger(MethodView):
 
         item_ids = [i.id for i in items]
         assocs = (
-            db.session.query(ItemTagAssociation)
-            .filter(ItemTagAssociation.item_id.in_(item_ids))
-            .filter(ItemTagAssociation.tag_id == tag_id)
+            db.session.query(mdl.ItemTagAssociation)
+            .filter(mdl.ItemTagAssociation.item_id.in_(item_ids))
+            .filter(mdl.ItemTagAssociation.tag_id == tag_id)
             .delete()
         )
 

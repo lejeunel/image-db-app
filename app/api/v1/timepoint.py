@@ -6,8 +6,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db, parser
-from ...models.plate import Plate
-from ...models.timepoint import TimePoint, TimePointSchema
+from ... import models as mdl
+from ... import schemas as sch
 from . import admin_required, check_duplicate
 
 blp = Blueprint(
@@ -17,22 +17,22 @@ blp = Blueprint(
 
 @blp.route("/<uuid:id>")
 class TimePointAPI(MethodView):
-    model = TimePoint
+    model = mdl.TimePoint
 
-    @blp.response(200, TimePointSchema)
+    @blp.response(200, sch.TimePointSchema)
     def get(self, id):
         """Get timepoint"""
 
-        res = record_exists(db, TimePoint, id)
+        res = record_exists(db, mdl.TimePoint, id)
 
         return res.first()
 
     @admin_required
-    @blp.arguments(TimePointSchema)
-    @blp.response(200, TimePointSchema)
+    @blp.arguments(sch.TimePointSchema)
+    @blp.response(200, sch.TimePointSchema)
     def patch(self, data, id):
         """Update timepoint."""
-        q = record_exists(db, TimePoint, id)
+        q = record_exists(db, mdl.TimePoint, id)
         q.update(data)
         db.session.commit()
 
@@ -43,7 +43,7 @@ class TimePointAPI(MethodView):
     def delete(self, id):
         """Delete timepoint"""
 
-        timepoint = record_exists(db, TimePoint, id)
+        timepoint = record_exists(db, mdl.TimePoint, id)
 
         db.session.delete(timepoint.first())
 
@@ -53,22 +53,22 @@ class TimePointAPI(MethodView):
 @blp.route("/")
 class TimePointsAPI(MethodView):
 
-    @blp.response(200, TimePointSchema(many=True))
+    @blp.response(200, sch.TimePointSchema(many=True))
     def get(self):
         """Get all timepoints"""
 
-        return TimePoint.query.all()
+        return mdl.TimePoint.query.all()
 
     @admin_required
-    @blp.arguments(TimePointSchema)
-    @blp.response(201, TimePointSchema)
+    @blp.arguments(sch.TimePointSchema)
+    @blp.response(201, sch.TimePointSchema)
     def post(self, data):
         """Add a new timepoint"""
 
-        check_duplicate(db.session, TimePoint, uri=data["uri"])
-        record_exists(db, Plate, data["plate_id"])
+        check_duplicate(db.session, mdl.TimePoint, uri=data["uri"])
+        record_exists(db, mdl.Plate, data["plate_id"])
 
-        timepoint = TimePoint(**data)
+        timepoint = mdl.TimePoint(**data)
         db.session.add(timepoint)
         db.session.commit()
 

@@ -60,14 +60,9 @@ def add_url_views(app, reader=None):
     app.register_blueprint(main_bp, url_prefix="/")
 
     from app.views.remote_item import RemoteItemView
+    from . import models as mdl
+    from . import schemas as sch
 
-    from .models.cell import Cell, CellSchema
-    from .models.compound import Compound, CompoundSchema
-    from .models.item import Tag, TagSchema
-    from .models.modality import Modality, ModalitySchema
-    from .models.plate import Plate, PlateSchema
-    from .models.section import Section, SectionSchema
-    from .models.stack import Stack, StackSchema
     from .views import GenericDetailedView, ListView
     from .views.plate import DetailedPlateView
     from .views.stack import StackView
@@ -75,18 +70,18 @@ def add_url_views(app, reader=None):
     # Add detailed views
     for model, schema in zip(
         [
-            Modality,
-            Cell,
-            Compound,
-            Tag,
-            Section,
+            mdl.Modality,
+            mdl.Cell,
+            mdl.Compound,
+            mdl.Tag,
+            mdl.Section,
         ],
         [
-            ModalitySchema,
-            CellSchema,
-            CompoundSchema,
-            TagSchema,
-            SectionSchema,
+            sch.ModalitySchema,
+            sch.CellSchema,
+            sch.CompoundSchema,
+            sch.TagSchema,
+            sch.SectionSchema,
         ],
     ):
         name = model.__name__.lower()
@@ -100,26 +95,26 @@ def add_url_views(app, reader=None):
     app.add_url_rule(
         f"/plate/detail/<uuid:id>",
         view_func=DetailedPlateView.as_view(
-            f"plate_detail", Plate, PlateSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
+            f"plate_detail", mdl.Plate, sch.PlateSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
         ),
     )
     app.add_url_rule(
         f"/stack/detail/<uuid:id>",
         view_func=StackView.as_view(
-            f"stack_detail", Stack, StackSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
+            f"stack_detail", mdl.Stack, sch.StackSchema, app.config["VIEWS_ITEMS_PER_PAGE"]
         ),
     )
 
     # Add basic elements views
     for obj, schema in zip(
-        [Modality, Cell, Compound, Plate, Stack, Tag],
+        [mdl.Modality, mdl.Cell, mdl.Compound, mdl.Plate, mdl.Stack, mdl.Tag],
         [
-            ModalitySchema,
-            CellSchema,
-            CompoundSchema,
-            PlateSchema,
-            StackSchema,
-            TagSchema,
+            sch.ModalitySchema,
+            sch.CellSchema,
+            sch.CompoundSchema,
+            sch.PlateSchema,
+            sch.StackSchema,
+            sch.TagSchema,
         ],
     ):
         name = obj.__name__.lower()

@@ -39,27 +39,3 @@ class Compound(db.Model):
 
 
 
-class CompoundSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Compound
-
-    moa_group = ma.String(dump_only=True)
-    moa_subgroup = ma.String(dump_only=True)
-    target = ma.String(dump_only=True)
-    property_id = ma.Int(required=False)
-
-    @post_dump()
-    def concat_compound_props(self, data, **kwargs):
-        data = _concat_properties(
-            db, CompoundProperty, data, prefix="", id_field="property_id", **kwargs
-        )
-        return data
-
-
-class CompoundPropertySchema(ma.SQLAlchemySchema):
-    class Meta:
-        model = CompoundProperty
-    id = ma.auto_field()
-    type = ma.Enum(CompoundPropertyType)
-    value = ma.auto_field()
-

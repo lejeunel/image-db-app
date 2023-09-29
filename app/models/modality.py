@@ -1,6 +1,6 @@
 import uuid
 
-from app import db, ma
+from app import db
 from sqlalchemy_utils.types.uuid import UUIDType
 
 
@@ -14,6 +14,3 @@ class Modality(db.Model):
     def __repr__(self):
         return f"<Modality {self.name}>"
 
-class ModalitySchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Modality

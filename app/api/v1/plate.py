@@ -5,13 +5,11 @@ from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
-from ... import db, parser
+from ... import db
+from ... import schemas as sch
+from ... import models as mdl
 from ...exceptions import MyException
 from ...models.plate import Plate
-from ...models.timepoint import TimePoint, TimePointSchema
-from ...models.item import ItemTagAssociation
-
-from ...models.plate import PlateSchema
 from . import admin_required, check_duplicate
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
@@ -21,9 +19,9 @@ def parsing_exception(e):
     return jsonify(e.to_dict()), e.status_code
 
 @blp.route('/<uuid:id>/timepoints')
-@blp.response(200, TimePointSchema(many=True))
+@blp.response(200, sch.TimePointSchema(many=True))
 def get_timepoints(id):
-    res = record_exists(db,Plate, id)
+    res = record_exists(db, mdl.Plate, id)
 
     return res.first().timepoints
 
@@ -31,20 +29,20 @@ def get_timepoints(id):
 class PlateAPI(MethodView):
     model = Plate
 
-    @blp.response(200, PlateSchema)
+    @blp.response(200, sch.PlateSchema)
     def get(self, id):
         """Get plate"""
 
-        res = record_exists(db,Plate, id)
+        res = record_exists(db, mdl.Plate, id)
 
         return res.first()
 
     @admin_required
-    @blp.arguments(PlateSchema)
-    @blp.response(200, PlateSchema)
+    @blp.arguments(sch.PlateSchema)
+    @blp.response(200, sch.PlateSchema)
     def patch(self, data, id):
         """Update plate."""
-        q = record_exists(db,Plate, id)
+        q = record_exists(db, mdl.Plate, id)
         q.update(data)
         db.session.commit()
 
@@ -55,7 +53,7 @@ class PlateAPI(MethodView):
     def delete(self, id):
         """Delete plate"""
 
-        res = record_exists(db,Plate, id)
+        res = record_exists(db, mdl.Plate, id)
 
         db.session.delete(res.first())
 
@@ -65,7 +63,7 @@ class PlateAPI(MethodView):
 
 @blp.route("/")
 class PlatesAPI(MethodView):
-    @blp.response(200, PlateSchema(many=True))
+    @blp.response(200, sch.PlateSchema(many=True))
     def get(self):
         """Get all plates"""
 
@@ -73,8 +71,8 @@ class PlatesAPI(MethodView):
         return plate
 
     @admin_required
-    @blp.arguments(PlateSchema)
-    @blp.response(201, PlateSchema)
+    @blp.arguments(sch.PlateSchema)
+    @blp.response(201, sch.PlateSchema)
     def post(self, data):
         """Add a new plate"""
 
