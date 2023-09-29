@@ -13,7 +13,7 @@ from .utils import admin_required
 blp = Blueprint(
     "Section",
     "Section",
-    url_prefix="/",
+    url_prefix="/api/v1",
     description="Spatially contiguous subset of wells in a plate",
 )
 

@@ -11,7 +11,7 @@ from ... import models as mdl
 from ...exceptions import MyException
 from .utils import admin_required, check_duplicate
 
-blp = Blueprint("Plate", "Plate", url_prefix="/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
+blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
 
 @blp.errorhandler(MyException)
 def parsing_exception(e):

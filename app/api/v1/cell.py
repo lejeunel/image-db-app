@@ -9,7 +9,7 @@ from ... import schemas as sch
 from ... import models as mdl
 from .utils import admin_required, check_dependencies, check_duplicate
 
-blp = Blueprint("Cell", "Cell", url_prefix="/cell", description="")
+blp = Blueprint("Cell", "Cell", url_prefix="/api/v1/cell", description="")
 
 
 @blp.route("/<uuid:id>")

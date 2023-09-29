@@ -22,8 +22,8 @@ class TimePointSchema(ma.SQLAlchemyAutoSchema):
 
     _links = ma.Hyperlinks(
         {
-            "self": ma.URLFor("Api.TimePoint.TimePoint", values=dict(id="<id>")),
-            "collection": ma.URLFor("Api.TimePoint.TimePoints"),
-            'plate': ma.URLFor("Api.Plate.Plate", values=dict(id="<plate_id>"))
+            "self": ma.URLFor("TimePoint.TimePoint", values=dict(id="<id>")),
+            "collection": ma.URLFor("TimePoint.TimePoints"),
+            'plate': ma.URLFor("Plate.Plate", values=dict(id="<plate_id>"))
         }
     )

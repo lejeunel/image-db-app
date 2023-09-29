@@ -12,7 +12,7 @@ from .utils import admin_required, check_duplicate
 blp = Blueprint(
     "Stack",
     "Stack",
-    url_prefix="/stack",
+    url_prefix="/api/v1/stack",
     description="Ordered set of channels with matching rules",
 )
 

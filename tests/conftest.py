@@ -28,11 +28,13 @@ def app():
 
     app.config.from_object("app.config.test")
     with app.app_context():
+
         db.init_app(app)
         ma.init_app(app)
-        restapi.init_app(app)
-        register_api_blueprints(app)
         parser.init_app(app, TestReader())
+
+        register_api_blueprints(app)
+        restapi.init_app(app)
 
         db.create_all()
         app.test_client_class = TestClient

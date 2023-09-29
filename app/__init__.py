@@ -32,7 +32,6 @@ def create_app(mode):
     app.jinja_env.filters["file_type"] = file_type
     app.jinja_env.filters["zip"] = zip
 
-    restapi.init_app(app)
 
     db.init_app(app)
     bootstrap.init_app(app)
@@ -42,7 +41,9 @@ def create_app(mode):
     ma.init_app(app)
 
     register_views(app, reader)
-    register_api_blueprints(app)
+
+    restapi.init_app(app)
+    register_api_blueprints(restapi)
 
     if mode == "test":
         with app.app_context():

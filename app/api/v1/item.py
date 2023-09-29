@@ -13,7 +13,7 @@ from flask import current_app
 from ... import db
 
 
-blp = Blueprint("Items", "Items", url_prefix="/items", description="")
+blp = Blueprint("Items", "Items", url_prefix="/api/v1/items", description="")
 blp.DEFAULT_PAGINATION_PARAMETERS = {
     "page": 1,
     "page_size": current_app.config["API_ITEMS_PAGE_SIZE"],

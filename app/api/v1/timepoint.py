@@ -11,7 +11,7 @@ from ... import schemas as sch
 from .utils import admin_required, check_duplicate
 
 blp = Blueprint(
-    "TimePoint", "TimePoint", url_prefix="/timepoint", description=""
+    "TimePoint", "TimePoint", url_prefix="/api/v1/timepoint", description=""
 )
 
 

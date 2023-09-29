@@ -12,9 +12,9 @@ class PlateSchema(ma.SQLAlchemyAutoSchema):
 
     _links = ma.Hyperlinks(
         {
-            "self": ma.URLFor("Api.Plate.Plate", values=dict(id="<id>")),
-            "collection": ma.URLFor("Api.Plate.Plates"),
-            "timepoints": ma.URLFor('Api.Plate.get_timepoints', values={'id': '<id>'}),
-            "sections": ma.URLFor('Api.Section.Sections', values={'id': '<id>'}),
+            "self": ma.URLFor("Plate.Plate", values=dict(id="<id>")),
+            "collection": ma.URLFor("Plate.Plates"),
+            "timepoints": ma.URLFor('Plate.get_timepoints', values={'id': '<id>'}),
+            "sections": ma.URLFor('Section.Sections', values={'id': '<id>'}),
         }
     )
