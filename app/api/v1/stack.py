@@ -5,14 +5,14 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from ... import db
-from ...models import Modality, Stack, StackModalityAssociation
+from ... import models as mdl
 from ...schemas import StackSchema
-from . import admin_required, check_duplicate
+from .utils import admin_required, check_duplicate
 
 blp = Blueprint(
     "Stack",
     "Stack",
-    url_prefix="/api/v1/stack",
+    url_prefix="/stack",
     description="Ordered set of channels with matching rules",
 )
 
@@ -53,14 +53,14 @@ def check_num_params(data):
 
 
 @blp.route("/<uuid:id>")
-class StackAPI(MethodView):
-    model = Stack
+class Stack(MethodView):
+    model = mdl.Stack
 
     @blp.response(200, StackSchema)
     def get(self, id):
         """Get stack"""
 
-        stack = db.session.query(Stack).filter_by(id=id).first()
+        stack = db.session.query(mdl.Stack).filter_by(id=id).first()
         if stack is None:
             abort(404, message="Not found.")
         return stack
@@ -70,7 +70,7 @@ class StackAPI(MethodView):
     @blp.response(200, StackSchema)
     def patch(self, update_data, id):
         """Update stack"""
-        res = StackAPI._update(id, update_data)
+        res = Stack._update(id, update_data)
 
         return res
 
@@ -79,7 +79,7 @@ class StackAPI(MethodView):
     def delete(self, id):
         """Delete stack"""
 
-        res = StackAPI._delete(id)
+        res = Stack._delete(id)
 
     @staticmethod
     def _create(data):
@@ -87,14 +87,14 @@ class StackAPI(MethodView):
         data_assoc, data_stack = split_dict(data)
 
         check_num_params(data_assoc)
-        check_duplicate(db.session, Stack, name=data["name"])
+        check_duplicate(db.session, mdl.Stack, name=data["name"])
 
         # check that all modalities exist
         for m in data_assoc["modalities"]:
-            record_exists(db,Modality, value=m, field="name")
+            record_exists(db, mdl.Modality, value=m, field="name")
         #
         # create stack record
-        stack = Stack(**data_stack)
+        stack = mdl.Stack(**data_stack)
         db.session.add(stack)
         db.session.commit()
 
@@ -103,12 +103,12 @@ class StackAPI(MethodView):
         for r in pivot_dict(data_assoc):
             data = {
                 "stack_id": stack.id,
-                "modality_id": db.session.query(Modality).filter_by(name=r["modalities"])
+                "modality_id": db.session.query(mdl.Modality).filter_by(name=r["modalities"])
                 .first()
                 .id,
                 "chan": r["channels"],
             }
-            assoc.append(StackModalityAssociation(**data))
+            assoc.append(mdl.StackModalityAssociation(**data))
 
         db.session.add_all(assoc)
         db.session.commit()
@@ -120,31 +120,31 @@ class StackAPI(MethodView):
 
         data_assoc, data_stack = split_dict(data)
 
-        record_exists(db,Stack, id)
+        record_exists(db, mdl.Stack, id)
 
         if data_assoc:
             check_num_params(data_assoc)
             # check that all modalities exist
             for modality in data_assoc["modalities"]:
-                record_exists(db,Modality, value=modality, field="name")
+                record_exists(db,mdl.Modality, value=modality, field="name")
 
-        q = db.session.query(Stack).filter_by(id=id)
+        q = db.session.query(mdl.Stack).filter_by(id=id)
         if data_stack:
             q.update(data_stack)
             db.session.commit()
 
         if data_assoc:
             # remove all associations
-            assoc = db.session.query(StackModalityAssociation).filter_by(stack_id=id).all()
+            assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
             for a in assoc:
                 db.session.delete(a)
             db.session.commit()
 
             # add new associations
             for a in pivot_dict(data_assoc):
-                modality_id = db.session.query(Modality).filter_by(name=a["modalities"]).first().id
+                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modalities"]).first().id
 
-                assoc = StackModalityAssociation(
+                assoc = mdl.StackModalityAssociation(
                     stack_id=id, modality_id=modality_id, chan=a["channels"]
                 )
                 db.session.add(assoc)
@@ -157,7 +157,7 @@ class StackAPI(MethodView):
     def _check_dependencies(id):
 
         # check if stack has dependencies
-        stack = db.session.query(Stack).filter_by(id=id).first()
+        stack = db.session.query(mdl.Stack).filter_by(id=id).first()
         if len(stack.sections) > 0:
             abort(
                 424,
@@ -168,17 +168,17 @@ class StackAPI(MethodView):
 
     @staticmethod
     def _can_delete(id):
-        res = record_exists(db,Stack, id)
-        StackAPI._check_dependencies(id)
+        res = record_exists(db, mdl.Stack, id)
+        Stack._check_dependencies(id)
         return res
 
     @staticmethod
     def _delete(id):
 
-        res = StackAPI._can_delete(id).first()
+        res = Stack._can_delete(id).first()
 
         # delete associations
-        assoc = db.session.query(StackModalityAssociation).filter_by(stack_id=id).all()
+        assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
         for a in assoc:
             db.session.delete(a)
 
@@ -187,12 +187,12 @@ class StackAPI(MethodView):
 
 
 @blp.route("/")
-class StacksAPI(MethodView):
+class Stacks(MethodView):
     @blp.response(200, StackSchema(many=True))
     def get(self):
         """Get all stacks"""
 
-        item = Stack.query.all()
+        item = mdl.Stack.query.all()
         return item
 
     @admin_required
@@ -201,6 +201,6 @@ class StacksAPI(MethodView):
     def post(self, data):
         """Add a new stack"""
 
-        res = StackAPI._create(data)
+        res = Stack._create(data)
 
         return res

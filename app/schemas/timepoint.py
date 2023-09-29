@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app import ma
+from app.extensions import ma
 from app import models as mdl
 from flask import current_app
 from marshmallow import validate
@@ -22,8 +22,8 @@ class TimePointSchema(ma.SQLAlchemyAutoSchema):
 
     _links = ma.Hyperlinks(
         {
-            "self": ma.URLFor("TimePoint.TimePointAPI", values=dict(id="<id>")),
-            "collection": ma.URLFor("TimePoint.TimePointsAPI"),
-            'plate': ma.URLFor("Plate.PlateAPI", values=dict(id="<plate_id>"))
+            "self": ma.URLFor("Api.TimePoint.TimePoint", values=dict(id="<id>")),
+            "collection": ma.URLFor("Api.TimePoint.TimePoints"),
+            'plate': ma.URLFor("Api.Plate.Plate", values=dict(id="<plate_id>"))
         }
     )

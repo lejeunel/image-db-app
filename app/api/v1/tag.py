@@ -9,18 +9,18 @@ from flask_smorest import abort
 from ... import db
 from ... import models as mdl
 from ... import schemas as sch
-from . import admin_required, check_duplicate
+from .utils import admin_required, check_duplicate
 
 blp = Blueprint(
     "Tag",
     "Tag",
-    url_prefix="/api/v1/tag",
+    url_prefix="/tag",
     description="Annotation tags",
 )
 
 
 @blp.route("/<uuid:id>")
-class TagAPI(MethodView):
+class Tag(MethodView):
     model = mdl.Tag
 
     @blp.response(200, sch.TagSchema)
@@ -35,7 +35,7 @@ class TagAPI(MethodView):
     @blp.response(200, sch.TagSchema)
     def patch(self, update_data, id):
         """Update tag"""
-        res = TagAPI._update(id, update_data)
+        res = self._update(id, update_data)
 
         return res
 
@@ -44,7 +44,7 @@ class TagAPI(MethodView):
     def delete(self, id):
         """Delete tag"""
 
-        TagAPI._delete(id)
+        self._delete(id)
 
     @staticmethod
     def _create(data):
@@ -81,19 +81,19 @@ class TagAPI(MethodView):
     @staticmethod
     def _can_delete(id):
         res = record_exists(db, mdl.Tag, id)
-        TagAPI._check_dependencies(id)
+        Tag._check_dependencies(id)
         return res.first()
 
     @staticmethod
     def _delete(id):
-        res = TagAPI._can_delete(id)
+        res = Tag._can_delete(id)
 
         db.session.delete(res)
         db.session.commit()
 
 
 @blp.route("/")
-class TagsAPI(MethodView):
+class Tags(MethodView):
     @blp.response(200, sch.TagSchema(many=True))
     def get(self):
         """Get all tags"""
@@ -106,6 +106,6 @@ class TagsAPI(MethodView):
     @blp.response(201, sch.TagSchema)
     def post(self, data):
         """Add a new tag"""
-        res = TagAPI._create(data)
+        res = Tag._create(data)
 
         return res

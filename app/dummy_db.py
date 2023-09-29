@@ -1,6 +1,6 @@
 
 def _populate_db():
-    from app import db, parser
+    from app.extensions import db, parser
     from app.models.plate import Plate
     from app.models.modality import Modality
     from app.models.cell import Cell

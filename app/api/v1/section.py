@@ -8,12 +8,12 @@ from flask_smorest import abort
 from ... import db
 from ... import models as mdl
 from ... import schemas as sch
-from . import admin_required
+from .utils import admin_required
 
 blp = Blueprint(
     "Section",
     "Section",
-    url_prefix="/api/v1",
+    url_prefix="/",
     description="Spatially contiguous subset of wells in a plate",
 )
 
@@ -37,7 +37,7 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
 
 
 @blp.route("/plate/<uuid:id>/sections")
-class SectionsAPI(MethodView):
+class Sections(MethodView):
     @blp.response(200, sch.SectionSchema(many=True))
     def get(self, id):
         """Get all sections from plate ID"""
@@ -53,7 +53,7 @@ class SectionsAPI(MethodView):
 
         res = record_exists(db, mdl.Plate, id)
         for s in res.first().sections:
-            res = SectionAPI._delete(s.id)
+            res = Section._delete(s.id)
 
     @admin_required
     @blp.arguments(sch.SectionSchema)
@@ -62,13 +62,13 @@ class SectionsAPI(MethodView):
         """Add a new section"""
 
         data["plate_id"] = id
-        res = SectionAPI._create(data)
+        res = Section._create(data)
 
         return res
 
 
 @blp.route("/section/<uuid:id>")
-class SectionAPI(MethodView):
+class Section(MethodView):
     @blp.response(200, sch.SectionSchema)
     def get(self, id):
         """Get section"""
@@ -82,7 +82,7 @@ class SectionAPI(MethodView):
     @blp.response(200, sch.SectionSchema)
     def patch(self, update_data, id):
         """Update section"""
-        res = SectionAPI._update(id, update_data).first()
+        res = Section._update(id, update_data).first()
 
         return res
 
@@ -91,7 +91,7 @@ class SectionAPI(MethodView):
     def delete(self, id):
         """Delete section"""
 
-        res = SectionAPI._delete(id)
+        res = Section._delete(id)
 
     @staticmethod
     def _check_range(plate_id, a):
@@ -141,14 +141,14 @@ class SectionAPI(MethodView):
         record_exists(db, mdl.Compound, value=data["compound_id"], field="id")
         record_exists(db, mdl.Stack, value=data["stack_id"], field="id")
 
-        SectionAPI._check_range(data["plate_id"], data)
+        Section._check_range(data["plate_id"], data)
 
         # check for overlap with existing sections of same plate
         existing_sections = (
             db.session.query(mdl.Plate).filter_by(id=data["plate_id"]).first().sections
         )
         for s in existing_sections:
-            SectionAPI._check_overlap(s.__dict__, data)
+            Section._check_overlap(s.__dict__, data)
 
         section = mdl.Section(**data)
         db.session.add(section)

@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 
-from app.models.modality import Modality
+from app import models as mdl
 from app.schemas.modality import ModalitySchema
 from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from ... import db
-from . import admin_required, check_dependencies, check_duplicate
+from .utils import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
     "Modality",
     "Modality",
-    url_prefix="/api/v1/modality",
+    url_prefix="/modality",
     description="Item modality",
 )
 
 
 @blp.route("/<uuid:id>")
-class ModalityAPI(MethodView):
-    model = Modality
+class Modality(MethodView):
+    model = mdl.Modality
 
     @blp.response(200, ModalitySchema)
     def get(self, id):
         """Get modality"""
 
-        res = record_exists(db,self.model, id).first()
+        res = record_exists(db, self.model, id).first()
         return res
 
     @admin_required
@@ -34,7 +34,7 @@ class ModalityAPI(MethodView):
     def patch(self, update_data, id):
         """Update modality"""
 
-        res = ModalityAPI._update(id, update_data)
+        res = self._update(id, update_data)
 
         return res
 
@@ -43,22 +43,20 @@ class ModalityAPI(MethodView):
     def delete(self, id):
         """Delete modality"""
 
-        res = ModalityAPI._delete(id)
+        res = self._delete(id)
 
     @staticmethod
     def _create(data):
+        check_duplicate(db.session, mdl.Modality, name=data["name"])
 
-        check_duplicate(db.session, Modality, name=data["name"])
-
-        modality = Modality(**data)
+        modality = mdl.Modality(**data)
         db.session.add(modality)
         db.session.commit()
         return modality
 
     @staticmethod
     def _update(id, data):
-
-        item = record_exists(db,Modality, id)
+        item = record_exists(db, mdl.Modality, id)
 
         item.update(data)
         db.session.commit()
@@ -66,21 +64,20 @@ class ModalityAPI(MethodView):
 
     @staticmethod
     def _delete(id):
+        res = record_exists(db, mdl.Modality, id)
 
-        res = record_exists(db,Modality, id)
-
-        check_dependencies(Modality, value=id, field="id", remote="stacks")
+        check_dependencies(mdl.Modality, value=id, field="id", remote="stacks")
 
         db.session.delete(res.first())
         db.session.commit()
 
 
 @blp.route("/")
-class ModalitiesAPI(MethodView):
+class Modalities(MethodView):
     @blp.response(200, ModalitySchema(many=True))
     def get(self):
         """Get all modalities"""
-        item = Modality.query.all()
+        item = mdl.Modality.query.all()
         return item
 
     @admin_required
@@ -88,6 +85,6 @@ class ModalitiesAPI(MethodView):
     @blp.response(201, ModalitySchema)
     def post(self, data):
         """Add a new modality"""
-        res = ModalityAPI._create(data)
+        res = Modality._create(data)
 
         return res

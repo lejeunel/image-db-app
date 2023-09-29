@@ -6,11 +6,11 @@ from flask.views import MethodView
 
 from . import get_user_profile
 
-blp = Blueprint("Identity", "Identity", url_prefix="/api/v1/whoami", description="")
+blp = Blueprint("Identity", "Identity", url_prefix="/whoami", description="")
 
 
 @blp.route("/")
-class IdentityAPI(MethodView):
+class Identity(MethodView):
 
     @blp.response(200, content_type='application/json')
     def get(self):

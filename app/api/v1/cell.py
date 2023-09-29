@@ -6,15 +6,15 @@ from flask_smorest import Blueprint
 
 from ... import db
 from ... import schemas as sch
-from ...models.cell import Cell
-from . import admin_required, check_dependencies, check_duplicate
+from ... import models as mdl
+from .utils import admin_required, check_dependencies, check_duplicate
 
-blp = Blueprint("Cell", "Cell", url_prefix="/api/v1/cell", description="")
+blp = Blueprint("Cell", "Cell", url_prefix="/cell", description="")
 
 
 @blp.route("/<uuid:id>")
-class CellAPI(MethodView):
-    model = Cell
+class Cell(MethodView):
+    model = mdl.Cell
 
     @blp.response(200, sch.CellSchema)
     def get(self, id):
@@ -28,7 +28,7 @@ class CellAPI(MethodView):
     @blp.response(200, sch.CellSchema)
     def patch(self, update_data, id):
         """Update cell"""
-        res = CellAPI._update(id, update_data)
+        res = Cell._update(id, update_data)
 
         return res
 
@@ -36,18 +36,18 @@ class CellAPI(MethodView):
     @blp.response(204)
     def delete(self, id):
         """Delete cell"""
-        cell = record_exists(db, Cell, id)
-        check_dependencies(Cell, value=id, field="id", remote="sections")
+        cell = record_exists(db, mdl.Cell, id)
+        check_dependencies(mdl.Cell, value=id, field="id", remote="sections")
 
         db.session.delete(cell.first())
         db.session.commit()
 
     @staticmethod
     def _create(data):
-        check_duplicate(db.session, Cell, code=data["code"])
-        check_duplicate(db.session, Cell, name=data["name"])
+        check_duplicate(db.session, mdl.Cell, code=data["code"])
+        check_duplicate(db.session, mdl.Cell, name=data["name"])
 
-        cell = Cell(**data)
+        cell = mdl.Cell(**data)
 
         db.session.add(cell)
         db.session.commit()
@@ -55,7 +55,7 @@ class CellAPI(MethodView):
 
     @staticmethod
     def _update(id, data):
-        cell = record_exists(db, Cell, id)
+        cell = record_exists(db, mdl.Cell, id)
 
         cell.update(data)
         db.session.commit()
@@ -63,12 +63,12 @@ class CellAPI(MethodView):
 
 
 @blp.route("/")
-class CellsAPI(MethodView):
+class Cells(MethodView):
     @blp.response(200, sch.CellSchema(many=True))
     def get(self):
         """Get all cells"""
 
-        item = Cell.query.all()
+        item = mdl.Cell.query.all()
         return item
 
     @admin_required
@@ -76,6 +76,6 @@ class CellsAPI(MethodView):
     @blp.response(201, sch.CellSchema)
     def post(self, data):
         """Add a new cell"""
-        res = CellAPI._create(data)
+        res = Cell._create(data)
 
         return res

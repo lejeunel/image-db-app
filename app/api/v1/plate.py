@@ -5,14 +5,13 @@ from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
-from ... import db
+from app.extensions import db
 from ... import schemas as sch
 from ... import models as mdl
 from ...exceptions import MyException
-from ...models.plate import Plate
-from . import admin_required, check_duplicate
+from .utils import admin_required, check_duplicate
 
-blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
+blp = Blueprint("Plate", "Plate", url_prefix="/plate", description="Main collection. Contains sub-resources Section, and TimePoint")
 
 @blp.errorhandler(MyException)
 def parsing_exception(e):
@@ -26,8 +25,8 @@ def get_timepoints(id):
     return res.first().timepoints
 
 @blp.route("/<uuid:id>")
-class PlateAPI(MethodView):
-    model = Plate
+class Plate(MethodView):
+    model = mdl.Plate
 
     @blp.response(200, sch.PlateSchema)
     def get(self, id):
@@ -62,12 +61,12 @@ class PlateAPI(MethodView):
 
 
 @blp.route("/")
-class PlatesAPI(MethodView):
+class Plates(MethodView):
     @blp.response(200, sch.PlateSchema(many=True))
     def get(self):
         """Get all plates"""
 
-        plate = Plate.query.all()
+        plate = mdl.Plate.query.all()
         return plate
 
     @admin_required
@@ -76,9 +75,9 @@ class PlatesAPI(MethodView):
     def post(self, data):
         """Add a new plate"""
 
-        check_duplicate(db.session, Plate, name=data["name"])
+        check_duplicate(db.session, mdl.Plate, name=data["name"])
 
-        plate = Plate(**data)
+        plate = mdl.Plate(**data)
 
         db.session.add(plate)
         db.session.commit()

@@ -17,7 +17,8 @@ class TestClient(testing.FlaskClient):
 
 @pytest.fixture()
 def app():
-    from app import db, restapi, parser, register_api_blueprints, ma
+    from app.extensions import db, restapi, parser, ma
+    from app.api.v1 import register_api_blueprints
 
     app = Flask(__name__, instance_relative_config=False)
 
@@ -30,7 +31,7 @@ def app():
         db.init_app(app)
         ma.init_app(app)
         restapi.init_app(app)
-        register_api_blueprints(app, restapi)
+        register_api_blueprints(app)
         parser.init_app(app, TestReader())
 
         db.create_all()

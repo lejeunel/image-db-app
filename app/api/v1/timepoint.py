@@ -8,15 +8,15 @@ from flask_smorest import Blueprint
 from ... import db, parser
 from ... import models as mdl
 from ... import schemas as sch
-from . import admin_required, check_duplicate
+from .utils import admin_required, check_duplicate
 
 blp = Blueprint(
-    "TimePoint", "TimePoint", url_prefix="/api/v1/timepoint", description=""
+    "TimePoint", "TimePoint", url_prefix="/timepoint", description=""
 )
 
 
 @blp.route("/<uuid:id>")
-class TimePointAPI(MethodView):
+class TimePoint(MethodView):
     model = mdl.TimePoint
 
     @blp.response(200, sch.TimePointSchema)
@@ -51,7 +51,7 @@ class TimePointAPI(MethodView):
 
 
 @blp.route("/")
-class TimePointsAPI(MethodView):
+class TimePoints(MethodView):
 
     @blp.response(200, sch.TimePointSchema(many=True))
     def get(self):

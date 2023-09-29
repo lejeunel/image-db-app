@@ -13,17 +13,17 @@ def make_stack_summary(stack):
     """
 
     res = StackSchema().dump(stack)
-    res.pop("modalities")
-    res.pop("regexps")
     modality_links = []
     modality_labels = []
     for modality in stack.modalities:
         modality_links.append(url_for("modality_detail", id=modality.id))
         modality_labels.append(modality.name)
-    res["modalities [name (pattern)]"] = [
-        "<a href={}>{} ({})</a>".format(link, label, regexp)
-        for link, label, regexp in zip(modality_links, modality_labels, stack.regexps)
+    res["modalities [name (channel)]"] = [
+        "<a href={}>{} ({})</a>".format(link, label, chan)
+        for link, label, chan in zip(modality_links, modality_labels, stack.channels)
     ]
+    res.pop('modalities')
+    res.pop('channels')
     return res
 
 
@@ -35,8 +35,7 @@ class StackView(GenericDetailedView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def make_summary_table(self, id):
-        stack = db.session.query(Stack).filter_by(id=id).first()
+    def make_summary_table(self, stack):
         stack_summary = make_stack_summary(stack)
         table = json2table.convert(
             stack_summary,

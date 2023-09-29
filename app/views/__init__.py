@@ -3,12 +3,11 @@ import json
 import json2table
 from flask import render_template, request
 from flask.views import View
-from app.api.v1.items import get_items_with_meta
-from app import db
-from app.schemas.item import ItemSchema
 
 
 def make_item_pagination(items, page, items_per_page):
+    from app.schemas.item import ItemSchema
+
     items_paginate = items.paginate(page=page, per_page=items_per_page, error_out=False)
     items = ItemSchema(many=True).dump(items_paginate)
 
@@ -65,6 +64,9 @@ class GenericDetailedView(View):
 
     def dispatch_request(self, id):
         # build items meta data
+        from app.api.v1.item import get_items_with_meta
+        from app import db
+
         items = get_items_with_meta()
         items = items.filter(self.model.id == id)
 
@@ -135,4 +137,90 @@ class ListView(View):
             pagination=paginate,
             typename=self.name.lower(),
             fullname=self.name,
+        )
+
+def register_views(app, reader=None):
+    from .index import bp as main_bp
+
+
+    with app.app_context():
+        from .remote_item import RemoteItemView
+
+        from .. import models as mdl
+        from .. import schemas as sch
+        from .import GenericDetailedView, ListView
+        from .plate import DetailedPlateView
+        from .stack import StackView
+
+        app.register_blueprint(main_bp, url_prefix="/")
+
+        # Add detailed views
+        for model, schema in zip(
+            [
+                mdl.Modality,
+                mdl.Cell,
+                mdl.Compound,
+                mdl.Tag,
+                mdl.Section,
+            ],
+            [
+                sch.ModalitySchema,
+                sch.CellSchema,
+                sch.CompoundSchema,
+                sch.TagSchema,
+                sch.SectionSchema,
+            ],
+        ):
+            name = model.__name__.lower()
+            app.add_url_rule(
+                f"/{name}/detail/<uuid:id>",
+                view_func=GenericDetailedView.as_view(
+                    f"{name}_detail", model, schema, app.config["VIEWS_ITEMS_PER_PAGE"]
+                ),
+            )
+
+        app.add_url_rule(
+            f"/plate/detail/<uuid:id>",
+            view_func=DetailedPlateView.as_view(
+                f"plate_detail",
+                mdl.Plate,
+                sch.PlateSchema,
+                app.config["VIEWS_ITEMS_PER_PAGE"],
+            ),
+        )
+        app.add_url_rule(
+            f"/stack/detail/<uuid:id>",
+            view_func=StackView.as_view(
+                f"stack_detail",
+                mdl.Stack,
+                sch.StackSchema,
+                app.config["VIEWS_ITEMS_PER_PAGE"],
+            ),
+        )
+
+        # Add basic elements views
+        for obj, schema in zip(
+            [mdl.Modality, mdl.Cell, mdl.Compound, mdl.Plate, mdl.Stack, mdl.Tag],
+            [
+                sch.ModalitySchema,
+                sch.CellSchema,
+                sch.CompoundSchema,
+                sch.PlateSchema,
+                sch.StackSchema,
+                sch.TagSchema,
+            ],
+        ):
+            name = obj.__name__.lower()
+            app.add_url_rule(
+                f"/{name}/list/".lower(),
+                view_func=ListView.as_view(
+                    f"{name}_list", obj, schema, app.config["VIEWS_ITEMS_PER_PAGE"]
+                ),
+            )
+
+        app.add_url_rule(
+            "/item/<uuid:id>",
+            view_func=RemoteItemView.as_view(
+                "item", reader, app.config["VIEWS_ITEMS_PER_PAGE"]
+            ),
         )

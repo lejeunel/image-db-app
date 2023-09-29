@@ -5,15 +5,15 @@ from flask_smorest import Blueprint
 from ... import db
 from ... import models as mdl
 from ... import schemas as sch
-from . import admin_required, check_dependencies, check_duplicate
+from .utils import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
-    "Compound", "Compound", url_prefix="/api/v1/compound", description="Chemical compounds"
+    "Compound", "Compound", url_prefix="/compound", description="Chemical compounds"
 )
 
 
 @blp.route("/<uuid:id>")
-class CompoundAPI(MethodView):
+class Compound(MethodView):
 
     model = mdl.Compound
 
@@ -29,7 +29,7 @@ class CompoundAPI(MethodView):
     @blp.response(200, sch.CompoundSchema)
     def patch(self, update_data, id):
         """Update compound"""
-        res = CompoundAPI._update(id, update_data)
+        res = self._update(id, update_data)
 
         return res
 
@@ -39,7 +39,7 @@ class CompoundAPI(MethodView):
     def delete(self, id):
         """Delete compound"""
 
-        res = CompoundAPI._delete(id)
+        res = self._delete(id)
 
     @staticmethod
     def _create(data):
@@ -69,7 +69,7 @@ class CompoundAPI(MethodView):
     @staticmethod
     def _delete(id):
 
-        CompoundAPI._can_delete(id)
+        Compound._can_delete(id)
 
         cpd = mdl.Compound.query.filter_by(id=id).first()
         db.session.delete(cpd)
@@ -77,7 +77,7 @@ class CompoundAPI(MethodView):
 
 
 @blp.route("/")
-class CompoundsAPI(MethodView):
+class Compounds(MethodView):
     model = mdl.Compound
 
     @blp.response(200, sch.CompoundSchema(many=True))
@@ -92,12 +92,12 @@ class CompoundsAPI(MethodView):
     def post(self, data):
         """Add a new compound"""
 
-        res = CompoundAPI._create(data)
+        res = Compound._create(data)
 
         return res
 
 @blp.route("/prop/")
-class CompoundPropertyAPI(MethodView):
+class CompoundProperty(MethodView):
     model = mdl.CompoundProperty
 
     @blp.response(200, sch.CompoundPropertySchema(many=True))
