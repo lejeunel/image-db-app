@@ -10,8 +10,8 @@ new = {
 
 
 def test_association_update(client):
-    res = client.post("stack/", json=new)
-    all = client.get("stack/")
+    res = client.post("stacks/", json=new)
+    all = client.get("stacks/")
     item = json.loads([s for s in all.response][0])[0]
 
     update_assoc = dict(new)
@@ -19,43 +19,43 @@ def test_association_update(client):
     update_assoc["modalities"] = ["BrightField", "WGA"]
     update_assoc["chan"] = [2, 4]
     res = client.patch(
-        "stack/{}".format(item["id"]),
+        "stacks/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
     assert res == 200
 
 
 def test_delete_used(client):
-    item = client.get("stack/").json[0]
-    res = client.delete("stack/{}".format(item["id"]))
+    item = client.get("stacks/").json[0]
+    res = client.delete("stacks/{}".format(item["id"]))
     assert res == 424
 
 
 def test_delete_unused(client):
-    res = client.post("stack/", json=new)
-    res = client.delete("stack/{}".format(res.json["id"]))
+    res = client.post("stacks/", json=new)
+    res = client.delete("stacks/{}".format(res.json["id"]))
     assert res == 204
 
 
 def test_update(client):
-    res = client.post("stack/", json=new)
+    res = client.post("stacks/", json=new)
 
-    item = client.get("stack/").json[0]
+    item = client.get("stacks/").json[0]
 
     res = client.patch(
-        "stack/{}".format(item["id"]),
+        "stacks/{}".format(item["id"]),
         json={"name": "updated_name"},
     )
     assert res == 200
     assert res.json["name"] == "updated_name"
 
 def test_add_channel(client):
-    res = client.post("stack/", json=new)
+    res = client.post("stacks/", json=new)
 
-    item = client.get("stack/").json[0]
+    item = client.get("stacks/").json[0]
 
     res = client.patch(
-        "stack/{}".format(item["id"]),
+        "stacks/{}".format(item["id"]),
         json={"modalities": ["modality_0", "modality_1", "modality_2", "modality_3"],
               "channels": [1, 2, 3, 4]}
     )
@@ -64,7 +64,7 @@ def test_add_channel(client):
 
 def test_create(client):
 
-    res = client.post("stack/", json=new)
+    res = client.post("stacks/", json=new)
     assert res == 201
 
 
@@ -72,5 +72,5 @@ def test_create_duplicate(client):
 
     dup = dict(new)
     dup["name"] = "stack_0"
-    res = client.post("stack/", json=dup)
+    res = client.post("stacks/", json=dup)
     assert res == 424

@@ -11,7 +11,7 @@ from .stack import Stack, StackModalityAssociation
 from .timepoint import TimePoint
 
 Plate.items = db.relationship("Item")
-Plate.sections = db.relationship("Section")
+Plate.sections = db.relationship("Section", cascade='all, delete')
 Item.plate = db.relationship(
     "Plate", back_populates="items", foreign_keys=[Item.plate_id]
 )

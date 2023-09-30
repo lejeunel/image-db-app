@@ -14,7 +14,7 @@ from .utils import admin_required, check_duplicate
 blp = Blueprint(
     "Tag",
     "Tag",
-    url_prefix="/api/v1/tag",
+    url_prefix="/api/v1/tags",
     description="Annotation tags",
 )
 

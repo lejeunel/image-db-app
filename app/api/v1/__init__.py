@@ -1,7 +1,6 @@
-from flask_smorest import Blueprint
-
 
 def register_api_blueprints(restapi):
+
     from .plate import blp as plate_blp
     from .section import blp as section_blp
     from .cell import blp as cell_blp

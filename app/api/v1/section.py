@@ -36,7 +36,7 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
     return coordinates
 
 
-@blp.route("/plate/<uuid:id>/sections")
+@blp.route("/plates/<uuid:id>/sections")
 class Sections(MethodView):
     @blp.response(200, sch.SectionSchema(many=True))
     def get(self, id):
@@ -67,7 +67,7 @@ class Sections(MethodView):
         return res
 
 
-@blp.route("/section/<uuid:id>")
+@blp.route("/sections/<uuid:id>")
 class Section(MethodView):
     @blp.response(200, sch.SectionSchema)
     def get(self, id):

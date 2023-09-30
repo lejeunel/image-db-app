@@ -7,7 +7,7 @@ from sqlalchemy_utils.types.uuid import UUIDType
 
 class Plate(db.Model):
     __tablename__ = "plate"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     name = db.Column(db.String(100))
     date = db.Column(db.DateTime(timezone=True), server_default=func.now())
     origin = db.Column(db.String(100))

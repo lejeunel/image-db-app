@@ -10,7 +10,7 @@ class Item(db.Model):
     """
 
     __tablename__ = "item"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     uri = db.Column(db.String(300))
     row = db.Column(db.String(1))
     col = db.Column(db.Integer)
@@ -23,7 +23,7 @@ class Item(db.Model):
 
 class Tag(db.Model):
     __tablename__ = "tag"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     name = db.Column(db.String(100))
     comment = db.Column(db.Text())
 
@@ -37,8 +37,8 @@ class ItemTagAssociation(db.Model):
 
     __tablename__ = "item_tag_assoc"
     __table_args__ = (db.UniqueConstraint("item_id", "tag_id"),)
-    item_id = db.Column(db.ForeignKey("item.id"), primary_key=True)
-    tag_id = db.Column(db.ForeignKey("tag.id"), primary_key=True)
+    item_id = db.Column(db.ForeignKey("item.id"), primary_key=True, index=True)
+    tag_id = db.Column(db.ForeignKey("tag.id"), primary_key=True, index=True)
 
     item = db.relationship("Item", foreign_keys=[item_id])
     tag = db.relationship("Tag", foreign_keys=[tag_id])

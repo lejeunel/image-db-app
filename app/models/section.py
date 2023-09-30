@@ -1,13 +1,7 @@
 import uuid
 
-from app.extensions import db, ma
-from app.models.compound import Compound
-from app.models.stack import Stack
-from app.utils import record_exists
-from marshmallow import post_dump, post_load, pre_load
+from app.extensions import db
 from sqlalchemy_utils.types.uuid import UUIDType
-
-from .cell import Cell
 
 
 class Section(db.Model):
@@ -21,7 +15,7 @@ class Section(db.Model):
     """
 
     __tablename__ = "section"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
 
     col_start = db.Column(db.Integer)
     col_end = db.Column(db.Integer)
@@ -34,8 +28,5 @@ class Section(db.Model):
     compound_id = db.Column(UUIDType, db.ForeignKey("compound.id"))
     stack_id = db.Column(UUIDType, db.ForeignKey("stack.id"))
 
-
     def __repr__(self):
         return f"<Section {self.id}>"
-
-

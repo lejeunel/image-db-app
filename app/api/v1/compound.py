@@ -8,7 +8,7 @@ from ... import schemas as sch
 from .utils import admin_required, check_dependencies, check_duplicate
 
 blp = Blueprint(
-    "Compound", "Compound", url_prefix="/api/v1/compound", description="Chemical compounds"
+    "Compound", "Compound", url_prefix="/api/v1/compounds", description="Chemical compounds"
 )
 
 

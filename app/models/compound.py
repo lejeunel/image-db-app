@@ -18,7 +18,7 @@ class CompoundPropertyType(enum.Enum):
 
 class CompoundProperty(db.Model, BaseNestedSets):
     __tablename__ = "compound_property"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, index=True)
     type = db.Column(Enum(CompoundPropertyType))
     value = db.Column(db.String(100))
 
@@ -28,7 +28,7 @@ class CompoundProperty(db.Model, BaseNestedSets):
 
 class Compound(db.Model):
     __tablename__ = "compound"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     property_id = db.Column(db.ForeignKey("compound_property.id"))
     name = db.Column(db.String(100))
     bcs = db.Column(db.String(100))

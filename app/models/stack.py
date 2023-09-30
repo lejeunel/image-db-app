@@ -10,7 +10,7 @@ class Stack(db.Model):
     """
 
     __tablename__ = "stack"
-    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
+    id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     name = db.Column(db.String(100))
     comment = db.Column(db.Text())
 
@@ -27,8 +27,8 @@ class StackModalityAssociation(db.Model):
 
     __tablename__ = "stack_modality_assoc"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4)
-    stack_id = db.Column(db.ForeignKey("stack.id"), primary_key=True)
-    modality_id = db.Column(db.ForeignKey("modality.id"), primary_key=True)
+    stack_id = db.Column(db.ForeignKey("stack.id"), primary_key=True, index=True)
+    modality_id = db.Column(db.ForeignKey("modality.id"), primary_key=True, index=True)
     chan = db.Column(db.Integer())
     regexp = db.Column(db.String(50))
 

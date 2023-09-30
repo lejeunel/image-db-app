@@ -12,7 +12,7 @@ from .utils import admin_required, check_dependencies, check_duplicate
 blp = Blueprint(
     "Modality",
     "Modality",
-    url_prefix="/api/v1/modality",
+    url_prefix="/api/v1/modalities",
     description="Item modality",
 )
 
