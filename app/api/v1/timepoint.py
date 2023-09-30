@@ -49,6 +49,22 @@ class TimePoint(MethodView):
 
         db.session.commit()
 
+def create_timepoint(data):
+    check_duplicate(db.session, mdl.TimePoint, uri=data["uri"])
+    record_exists(db, mdl.Plate, data["plate_id"])
+
+    timepoint = mdl.TimePoint(**data)
+    db.session.add(timepoint)
+    db.session.commit()
+
+    items = parser(
+        base_uri=timepoint.uri,
+        plate_id=timepoint.plate_id,
+        timepoint_id=timepoint.id,
+    )
+    db.session.add_all(items)
+
+    return timepoint
 
 @blp.route("/")
 class TimePoints(MethodView):
@@ -65,19 +81,4 @@ class TimePoints(MethodView):
     def post(self, data):
         """Add a new timepoint"""
 
-        check_duplicate(db.session, mdl.TimePoint, uri=data["uri"])
-        record_exists(db, mdl.Plate, data["plate_id"])
-
-        timepoint = mdl.TimePoint(**data)
-        db.session.add(timepoint)
-        db.session.commit()
-
-        items = parser(
-            base_uri=timepoint.uri,
-            plate_id=timepoint.plate_id,
-            timepoint_id=timepoint.id,
-        )
-        db.session.add_all(items)
-
-        return timepoint
-
+        return create_timepoint(data)

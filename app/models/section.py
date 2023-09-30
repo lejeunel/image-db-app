@@ -26,7 +26,6 @@ class Section(db.Model):
     plate_id = db.Column(UUIDType, db.ForeignKey("plate.id"))
     cell_id = db.Column(UUIDType, db.ForeignKey("cell.id"))
     compound_id = db.Column(UUIDType, db.ForeignKey("compound.id"))
-    stack_id = db.Column(UUIDType, db.ForeignKey("stack.id"))
 
     def __repr__(self):
         return f"<Section {self.id}>"

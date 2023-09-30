@@ -12,6 +12,7 @@ from .timepoint import TimePoint
 
 Plate.items = db.relationship("Item")
 Plate.sections = db.relationship("Section", cascade='all, delete')
+Plate.stack = db.relationship("Stack", back_populates="plates")
 Item.plate = db.relationship(
     "Plate", back_populates="items", foreign_keys=[Item.plate_id]
 )
@@ -20,7 +21,6 @@ TimePoint.items = db.relationship("Item")
 Cell.sections = db.relationship("Section")
 Compound.sections = db.relationship("Section")
 Plate.timepoints = db.relationship("TimePoint", cascade='all, delete')
-Stack.sections = db.relationship("Section")
 Stack.stack_modality_assoc = db.relationship("StackModalityAssociation")
 Modality.stack_modality_assoc = db.relationship("StackModalityAssociation")
 
@@ -49,12 +49,10 @@ Section.cell = db.relationship(
 Section.compound = db.relationship(
     "Compound", back_populates="sections", foreign_keys=[Section.compound_id]
 )
-Section.stack = db.relationship(
-    "Stack", back_populates="sections", foreign_keys=[Section.stack_id]
-)
 
 Stack.modalities = association_proxy("stack_modality_assoc", "modality")
 Stack.channels = association_proxy("stack_modality_assoc", "chan")
+Stack.plates = db.relationship("Plate")
 
 StackModalityAssociation.stack = db.relationship(
     Stack,

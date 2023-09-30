@@ -10,6 +10,7 @@ def register_api_blueprints(restapi):
     from .timepoint import blp as timepoint_blp
     from .modality import blp as modality_blp
     from .tag import blp as tag_blp
+    from .compound_props import blp as prop_blp
 
     restapi.register_blueprint(plate_blp)
     restapi.register_blueprint(section_blp)
@@ -20,3 +21,4 @@ def register_api_blueprints(restapi):
     restapi.register_blueprint(timepoint_blp)
     restapi.register_blueprint(modality_blp)
     restapi.register_blueprint(tag_blp)
+    restapi.register_blueprint(prop_blp)

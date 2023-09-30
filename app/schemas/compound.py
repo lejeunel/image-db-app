@@ -15,6 +15,14 @@ class CompoundSchema(ma.SQLAlchemyAutoSchema):
     target = ma.String(dump_only=True)
     property_id = ma.Int(required=False)
 
+    _links = ma.Hyperlinks(
+        {
+            "self": ma.URLFor("Compound.Compounds", values=dict(id="<id>")),
+            "collection": ma.URLFor("Compound.Compounds"),
+            "properties": ma.URLFor("CompoundProperty.CompoundProperty", values=dict(id="<property_id>")),
+        }
+    )
+
     @post_dump()
     def concat_compound_props(self, data, **kwargs):
         data = _concat_properties(
@@ -29,3 +37,10 @@ class CompoundPropertySchema(ma.SQLAlchemySchema):
     id = ma.auto_field()
     type = ma.Enum(mdl.CompoundPropertyType)
     value = ma.auto_field()
+
+    _links = ma.Hyperlinks(
+        {
+            "self": ma.URLFor("CompoundProperty.CompoundProperty", values=dict(id="<id>")),
+            "collection": ma.URLFor("CompoundProperty.CompoundProperties"),
+        }
+    )

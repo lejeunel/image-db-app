@@ -36,35 +36,60 @@ def make_grid(row_start, row_end, col_start, col_end, *args, **kwargs):
     return coordinates
 
 
-@blp.route("/plates/<uuid:id>/sections")
-class Sections(MethodView):
-    @blp.response(200, sch.SectionSchema(many=True))
-    def get(self, id):
-        """Get all sections from plate ID"""
+def create_section(data):
+    record_exists(db, mdl.Cell, value=data["cell_id"], field="id")
+    record_exists(db, mdl.Compound, value=data["compound_id"], field="id")
 
-        res = record_exists(db, mdl.Plate, id)
+    Section._check_range(data["plate_id"], data)
 
-        return res.first().sections
+    # check for overlap with existing sections of same plate
+    existing_sections = (
+        db.session.query(mdl.Plate).filter_by(id=data["plate_id"]).first().sections
+    )
+    for s in existing_sections:
+        Section._check_overlap(s.__dict__, data)
 
-    @admin_required
-    @blp.response(204)
-    def delete(self, id):
-        """Delete all sections"""
+    section = mdl.Section(**data)
+    db.session.add(section)
+    db.session.commit()
 
-        res = record_exists(db, mdl.Plate, id)
-        for s in res.first().sections:
-            res = Section._delete(s.id)
+    return section
 
-    @admin_required
-    @blp.arguments(sch.SectionSchema)
-    @blp.response(201, sch.SectionSchema)
-    def post(self, data, id):
-        """Add a new section"""
+def delete_section(id):
+    res = record_exists(db, mdl.Section, id, field="id").first()
 
-        data["plate_id"] = id
-        res = Section._create(data)
+    db.session.delete(res)
+    db.session.commit()
 
-        return res
+def update_section(id, data):
+    if "cell_code" in data.keys():
+        data["cell_id"] = (
+            record_exists(db, mdl.Cell, value=data["cell_code"], field="code")
+            .first()
+            .id
+        )
+        data.pop("cell_code", None)
+    if "compound_name" in data.keys():
+        data["compound_id"] = (
+            record_exists(db, mdl.Compound, value=data["compound_name"], field="name")
+            .first()
+            .id
+        )
+        data.pop("compound_name", None)
+    if "stack_name" in data.keys():
+        data["stack_id"] = (
+            record_exists(db, mdl.Stack, value=data["stack_name"], field="name")
+            .first()
+            .id
+        )
+        data.pop("stack_name", None)
+
+    elem = db.session.query(mdl.Section).filter_by(id=id)
+
+    if data:
+        elem.update(data)
+        db.session.commit()
+    return elem
 
 
 @blp.route("/sections/<uuid:id>")
@@ -82,7 +107,7 @@ class Section(MethodView):
     @blp.response(200, sch.SectionSchema)
     def patch(self, update_data, id):
         """Update section"""
-        res = Section._update(id, update_data).first()
+        res = update_section(id, update_data).first()
 
         return res
 
@@ -91,7 +116,7 @@ class Section(MethodView):
     def delete(self, id):
         """Delete section"""
 
-        res = Section._delete(id)
+        res = delete_section(id)
 
     @staticmethod
     def _check_range(plate_id, a):
@@ -134,62 +159,3 @@ class Section(MethodView):
 
         if set(section_coords) & set(new_section_coords):
             abort(409, message="Requested section overlaps with existing section.")
-
-    @staticmethod
-    def _create(data):
-        record_exists(db, mdl.Cell, value=data["cell_id"], field="id")
-        record_exists(db, mdl.Compound, value=data["compound_id"], field="id")
-        record_exists(db, mdl.Stack, value=data["stack_id"], field="id")
-
-        Section._check_range(data["plate_id"], data)
-
-        # check for overlap with existing sections of same plate
-        existing_sections = (
-            db.session.query(mdl.Plate).filter_by(id=data["plate_id"]).first().sections
-        )
-        for s in existing_sections:
-            Section._check_overlap(s.__dict__, data)
-
-        section = mdl.Section(**data)
-        db.session.add(section)
-        db.session.commit()
-
-        return section
-
-    @staticmethod
-    def _delete(id):
-        res = record_exists(db, mdl.Section, id, field="id").first()
-
-        db.session.delete(res)
-        db.session.commit()
-
-    @staticmethod
-    def _update(id, data):
-        if "cell_code" in data.keys():
-            data["cell_id"] = (
-                record_exists(db, mdl.Cell, value=data["cell_code"], field="code")
-                .first()
-                .id
-            )
-            data.pop("cell_code", None)
-        if "compound_name" in data.keys():
-            data["compound_id"] = (
-                record_exists(db, mdl.Compound, value=data["compound_name"], field="name")
-                .first()
-                .id
-            )
-            data.pop("compound_name", None)
-        if "stack_name" in data.keys():
-            data["stack_id"] = (
-                record_exists(db, mdl.Stack, value=data["stack_name"], field="name")
-                .first()
-                .id
-            )
-            data.pop("stack_name", None)
-
-        elem = db.session.query(mdl.Section).filter_by(id=id)
-
-        if data:
-            elem.update(data)
-            db.session.commit()
-        return elem

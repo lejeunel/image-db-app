@@ -14,7 +14,8 @@ class PlateSchema(ma.SQLAlchemyAutoSchema):
         {
             "self": ma.URLFor("Plate.Plate", values=dict(id="<id>")),
             "collection": ma.URLFor("Plate.Plates"),
-            "timepoints": ma.URLFor('Plate.get_timepoints', values={'id': '<id>'}),
-            "sections": ma.URLFor('Section.Sections', values={'id': '<id>'}),
+            "timepoints": ma.URLFor('Plate.TimePointsOfPlate', values={'id': '<id>'}),
+            "sections": ma.URLFor('Plate.SectionsOfPlate', values={'id': '<id>'}),
+            "stack": ma.URLFor("Plate.get_stack", values={'id': '<id>'})
         }
     )

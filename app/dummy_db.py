@@ -62,6 +62,7 @@ def _populate_db():
 
     plate = Plate(
         name="first plate",
+        stack_id=stack.id
     )
     db.session.add(plate)
     db.session.commit()
@@ -77,7 +78,7 @@ def _populate_db():
         items = parser(base_uri=t.uri, plate_id=plate.id, timepoint_id=t.id)
         db.session.add_all(items)
 
-    base_section = {"cell_id": cell.id, "stack_id": stack.id, "plate_id": plate.id}
+    base_section = {"cell_id": cell.id, "plate_id": plate.id}
     sections = [
         Section(
             **{

@@ -13,30 +13,6 @@ class SectionSchema(ma.SQLAlchemyAutoSchema):
         additional = ("compound_name", "cell_name", "cell_code", "stack_name")
 
     @post_dump()
-    def stack_id_to_name(self, data, **kwargs):
-        if "stack_id" in data:
-            data["stack_name"] = (
-                db.session.query(mdl.Stack)
-                .filter(mdl.Stack.id == data["stack_id"])
-                .first()
-                .name
-            )
-            data.pop("stack_id")
-        return data
-
-    @post_load()
-    def stack_name_to_id(self, data, **kwargs):
-        if "stack_name" in data:
-            data["stack_id"] = (
-                db.session.query(mdl.Stack)
-                .filter(mdl.Stack.name == data["stack_name"])
-                .first()
-                .id
-            )
-            data.pop("stack_name")
-        return data
-
-    @post_dump()
     def cell_id_to_code(self, data, **kwargs):
         if "cell_id" in data:
             data["cell_code"] = (

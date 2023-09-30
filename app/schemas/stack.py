@@ -9,6 +9,12 @@ class StackSchema(ma.SQLAlchemyAutoSchema):
         model = Stack
         additional = ('modalities', 'channels')
 
+    _links = ma.Hyperlinks(
+        {
+            "self": ma.URLFor("Stack.Stack", values=dict(id="<id>")),
+            "collection": ma.URLFor("Stack.Stacks"),
+        })
+
     @post_dump()
     def modalities_channels(self, data, **kwargs):
         data['modalities'] = [m.name for m in data['modalities']]

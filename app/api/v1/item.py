@@ -61,7 +61,7 @@ def get_items_with_meta():
         .join(mdl.TimePoint, mdl.TimePoint.id == mdl.Item.timepoint_id)
         .outerjoin(mdl.Section, mdl.Plate.id == mdl.Section.plate_id)
         .join(mdl.Cell, mdl.Cell.id == mdl.Section.cell_id)
-        .join(mdl.Stack, mdl.Stack.id == mdl.Section.stack_id)
+        .join(mdl.Stack, mdl.Stack.id == mdl.Plate.stack_id)
         .join(mdl.StackModalityAssociation, mdl.StackModalityAssociation.stack_id == mdl.Stack.id)
         .join(mdl.Modality, mdl.StackModalityAssociation.modality_id == mdl.Modality.id)
         .join(mdl.Compound, mdl.Section.compound_id == mdl.Compound.id)
@@ -176,7 +176,7 @@ class ItemTagger(MethodView):
 
     @blp.arguments(sch.ItemSchema, location="query")
     @blp.paginate()
-    @blp.response(200, sch.ItemSchema(many=True))
+    @blp.response(200)
     def delete(self, args, tag_name, pagination_parameters):
         """Remove a tag from (set of) items"""
 

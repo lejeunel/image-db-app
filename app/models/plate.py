@@ -13,6 +13,7 @@ class Plate(db.Model):
     origin = db.Column(db.String(100))
     comment = db.Column(db.Text())
     project = db.Column(db.String(100))
+    stack_id = db.Column(UUIDType, db.ForeignKey("stack.id"))
 
     def __repr__(self):
         return f"<Plate {self.name} ({self.id})>"

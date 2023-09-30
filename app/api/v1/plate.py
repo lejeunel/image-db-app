@@ -10,6 +10,8 @@ from ... import schemas as sch
 from ... import models as mdl
 from ...exceptions import MyException
 from .utils import admin_required, check_duplicate
+from .section import delete_section, update_section, create_section
+from .timepoint import create_timepoint
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plates", description="Main collection. Contains sub-resources Section, and TimePoint")
 
@@ -17,12 +19,73 @@ blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plates", description="Main
 def parsing_exception(e):
     return jsonify(e.to_dict()), e.status_code
 
-@blp.route('/<uuid:id>/timepoints')
-@blp.response(200, sch.TimePointSchema(many=True))
-def get_timepoints(id):
+@blp.route("/<uuid:id>/timepoints")
+class TimePointsOfPlate(MethodView):
+    @blp.response(200, sch.TimePointSchema(many=True))
+    def get(self, id):
+        """Get all timepoints from plate ID"""
+
+        res = record_exists(db, mdl.Plate, id)
+
+        return res.first().timepoints
+
+    @admin_required
+    @blp.response(204)
+    def delete(self, id):
+        """Delete all timepoints"""
+
+        res = record_exists(db, mdl.Plate, id)
+        for tp in res.first().timepoints:
+            db.session.delete(tp)
+
+    @admin_required
+    @blp.arguments(sch.TimePointSchema)
+    @blp.response(201, sch.TimePointSchema)
+    def post(self, data, id):
+        """Add a new timepoint"""
+
+        data["plate_id"] = id
+        res = create_timepoint(data)
+
+        return res
+
+@blp.route('/<uuid:id>/stack')
+@blp.response(200, sch.StackSchema())
+def get_stack(id):
     res = record_exists(db, mdl.Plate, id)
 
-    return res.first().timepoints
+    return res.first().stack
+
+@blp.route("/<uuid:id>/sections")
+class SectionsOfPlate(MethodView):
+    @blp.response(200, sch.SectionSchema(many=True))
+    def get(self, id):
+        """Get all sections from plate ID"""
+
+        res = record_exists(db, mdl.Plate, id)
+
+        return res.first().sections
+
+    @admin_required
+    @blp.response(204)
+    def delete(self, id):
+        """Delete all sections"""
+
+        res = record_exists(db, mdl.Plate, id)
+        for s in res.first().sections:
+            res = delete_section(s.id)
+
+    @admin_required
+    @blp.arguments(sch.SectionSchema)
+    @blp.response(201, sch.SectionSchema)
+    def post(self, data, id):
+        """Add a new section"""
+
+        data["plate_id"] = id
+        res = create_section(data)
+
+        return res
+
 
 @blp.route("/<uuid:id>")
 class Plate(MethodView):

@@ -158,10 +158,10 @@ class Stack(MethodView):
 
         # check if stack has dependencies
         stack = db.session.query(mdl.Stack).filter_by(id=id).first()
-        if len(stack.sections) > 0:
+        if len(stack.plates) > 0:
             abort(
                 424,
-                message="Could not delete stack profile with id {}. Found parent section.".format(
+                message="Could not delete stack profile with id {}. Found parent plate.".format(
                     id
                 ),
             )
