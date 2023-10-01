@@ -1,10 +1,7 @@
 import pytest
-from flask import testing
-from flask import Flask
-from flask_smorest.pagination import PaginationMixin
-from app.reader.test import TestReader
 from app.dummy_db import _populate_db
-from unittest.mock import patch, PropertyMock
+from app.reader.test import TestReader
+from flask import Flask, testing
 
 #
 
@@ -17,8 +14,8 @@ class TestClient(testing.FlaskClient):
 
 @pytest.fixture()
 def app():
-    from app.extensions import db, restapi, parser, ma
     from app.api.v1 import register_api_blueprints
+    from app.extensions import db, ma, parser, restapi
 
     app = Flask(__name__, instance_relative_config=False)
 

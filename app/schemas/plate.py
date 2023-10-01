@@ -8,8 +8,6 @@ class PlateSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Plate
 
-    # timepoints = ma.List(ma.Nested(TimePointSchema))
-
     _links = ma.Hyperlinks(
         {
             "self": ma.URLFor("Plate.Plate", values=dict(id="<id>")),

@@ -74,11 +74,3 @@ class TimePoints(MethodView):
         """Get all timepoints"""
 
         return mdl.TimePoint.query.all()
-
-    @admin_required
-    @blp.arguments(sch.TimePointSchema)
-    @blp.response(201, sch.TimePointSchema)
-    def post(self, data):
-        """Add a new timepoint"""
-
-        return create_timepoint(data)

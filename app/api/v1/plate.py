@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
+from app.extensions import db
 from app.utils import record_exists
-from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
+from flask import jsonify
 
-from app.extensions import db
-from ... import schemas as sch
 from ... import models as mdl
-from ...exceptions import MyException
-from .utils import admin_required, check_duplicate
-from .section import delete_section, update_section, create_section
+from ... import schemas as sch
+from .section import create_section, delete_section
 from .timepoint import create_timepoint
+from .utils import admin_required, check_duplicate
+from ...exceptions import MyException
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plates", description="Main collection. Contains sub-resources Section, and TimePoint")
 
