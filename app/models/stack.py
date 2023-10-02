@@ -2,9 +2,10 @@ import uuid
 
 from app.extensions import db
 from sqlalchemy_utils.types.uuid import UUIDType
+from .mixins import UpdateMixin
 
 
-class Stack(db.Model):
+class Stack(db.Model, UpdateMixin):
     """
     This allows to group different modalities
     """

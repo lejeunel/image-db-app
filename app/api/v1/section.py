@@ -98,9 +98,7 @@ class Section(MethodView):
     def get(self, id):
         """Get section"""
 
-        res = record_exists(db, mdl.Section, id)
-
-        return res.first()
+        return mdl.Section.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(sch.SectionSchema)

@@ -25,17 +25,15 @@ class TimePointsOfPlate(MethodView):
     def get(self, id):
         """Get all timepoints from plate ID"""
 
-        res = record_exists(db, mdl.Plate, id)
-
-        return res.first().timepoints
+        return mdl.Plate.query.get_or_404(id).timepoints
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete all timepoints"""
 
-        res = record_exists(db, mdl.Plate, id)
-        for tp in res.first().timepoints:
+        plate = mdl.Plate.query.get_or_404(id)
+        for tp in plate.timepoints:
             db.session.delete(tp)
 
     @admin_required
@@ -52,9 +50,8 @@ class TimePointsOfPlate(MethodView):
 @blp.route('/<uuid:id>/stack')
 @blp.response(200, sch.StackSchema())
 def get_stack(id):
-    res = record_exists(db, mdl.Plate, id)
 
-    return res.first().stack
+    return mdl.Plate.get_or_404(id).stack
 
 @blp.route("/<uuid:id>/sections")
 class SectionsOfPlate(MethodView):
@@ -62,17 +59,15 @@ class SectionsOfPlate(MethodView):
     def get(self, id):
         """Get all sections from plate ID"""
 
-        res = record_exists(db, mdl.Plate, id)
-
-        return res.first().sections
+        return mdl.Plate.query.get_or_404(id).sections
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete all sections"""
 
-        res = record_exists(db, mdl.Plate, id)
-        for s in res.first().sections:
+        sections = mdl.Plate.query.get_or_404(id).sections
+        for s in sections:
             res = delete_section(s.id)
 
     @admin_required
@@ -95,29 +90,27 @@ class Plate(MethodView):
     def get(self, id):
         """Get plate"""
 
-        res = record_exists(db, mdl.Plate, id)
-
-        return res.first()
+        return mdl.Plate.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(sch.PlateSchema)
     @blp.response(200, sch.PlateSchema)
     def patch(self, data, id):
         """Update plate."""
-        q = record_exists(db, mdl.Plate, id)
+        q = mdl.Plate.query.get_or_404(id)
         q.update(data)
         db.session.commit()
 
-        return q.first()
+        return q
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete plate"""
 
-        res = record_exists(db, mdl.Plate, id)
+        res = mdl.Plate.query.get_or_404(id)
 
-        db.session.delete(res.first())
+        db.session.delete(res)
 
         db.session.commit()
 

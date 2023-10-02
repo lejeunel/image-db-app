@@ -20,46 +20,28 @@ class Cell(MethodView):
     def get(self, id):
         """Get cell"""
 
-        res = record_exists(db, Cell, id).first()
-        return res
+        return mdl.Cell.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(sch.CellSchema)
     @blp.response(200, sch.CellSchema)
-    def patch(self, update_data, id):
+    def patch(self, data, id):
         """Update cell"""
-        res = Cell._update(id, update_data)
+        cell = mdl.Cell.query.get_or_404(id)
+        cell.update(data)
+        db.session.commit()
 
-        return res
+        return cell
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete cell"""
-        cell = record_exists(db, mdl.Cell, id)
+        cell = mdl.Cell.query.get_or_404(id)
         check_dependencies(mdl.Cell, value=id, field="id", remote="sections")
 
-        db.session.delete(cell.first())
+        db.session.delete(cell)
         db.session.commit()
-
-    @staticmethod
-    def _create(data):
-        check_duplicate(db.session, mdl.Cell, code=data["code"])
-        check_duplicate(db.session, mdl.Cell, name=data["name"])
-
-        cell = mdl.Cell(**data)
-
-        db.session.add(cell)
-        db.session.commit()
-        return cell
-
-    @staticmethod
-    def _update(id, data):
-        cell = record_exists(db, mdl.Cell, id)
-
-        cell.update(data)
-        db.session.commit()
-        return cell.first()
 
 
 @blp.route("/")
@@ -76,6 +58,13 @@ class Cells(MethodView):
     @blp.response(201, sch.CellSchema)
     def post(self, data):
         """Add a new cell"""
-        res = Cell._create(data)
+        check_duplicate(db.session, mdl.Cell, code=data["code"])
+        check_duplicate(db.session, mdl.Cell, name=data["name"])
+
+        cell = mdl.Cell(**data)
+
+        db.session.add(cell)
+        db.session.commit()
+        return cell
 
         return res

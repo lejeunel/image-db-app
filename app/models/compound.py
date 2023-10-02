@@ -1,13 +1,12 @@
 import enum
 import uuid
 
-from app.extensions import db, ma
-from marshmallow import post_dump, pre_dump
+from app.extensions import db
 from sqlalchemy import Enum
 from sqlalchemy_mptt.mixins import BaseNestedSets
 from sqlalchemy_utils.types.uuid import UUIDType
 
-from .utils import _concat_properties
+from .mixins import UpdateMixin
 
 
 class CompoundPropertyType(enum.Enum):
@@ -19,17 +18,17 @@ class CompoundPropertyType(enum.Enum):
 class CompoundProperty(db.Model, BaseNestedSets):
     __tablename__ = "compound_property"
     id = db.Column(db.Integer, primary_key=True, index=True)
-    type = db.Column(Enum(CompoundPropertyType))
-    value = db.Column(db.String(100))
+    type = db.Column(Enum(CompoundPropertyType), nullable=False)
+    value = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return f"<CpdProperty {self.type}: {self.value}>"
 
 
-class Compound(db.Model):
+class Compound(db.Model, UpdateMixin):
     __tablename__ = "compound"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
-    property_id = db.Column(db.ForeignKey("compound_property.id"))
+    property_id = db.Column(db.ForeignKey("compound_property.id"), nullable=False)
     name = db.Column(db.String(100))
     bcs = db.Column(db.String(100))
     comment = db.Column(db.Text())

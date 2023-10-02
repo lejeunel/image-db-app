@@ -23,16 +23,14 @@ class TimePoint(MethodView):
     def get(self, id):
         """Get timepoint"""
 
-        res = record_exists(db, mdl.TimePoint, id)
-
-        return res.first()
+        return mdl.TimePoint.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(sch.TimePointSchema)
     @blp.response(200, sch.TimePointSchema)
     def patch(self, data, id):
         """Update timepoint."""
-        q = record_exists(db, mdl.TimePoint, id)
+        res = mdl.TimePoint.query.get_or_404(id)
         q.update(data)
         db.session.commit()
 
@@ -43,11 +41,12 @@ class TimePoint(MethodView):
     def delete(self, id):
         """Delete timepoint"""
 
-        timepoint = record_exists(db, mdl.TimePoint, id)
+        timepoint = mdl.TimePoint.query.get_or_404(id)
 
-        db.session.delete(timepoint.first())
+        db.session.delete(timepoint)
 
         db.session.commit()
+
 
 def create_timepoint(data):
     check_duplicate(db.session, mdl.TimePoint, uri=data["uri"])
@@ -66,9 +65,9 @@ def create_timepoint(data):
 
     return timepoint
 
+
 @blp.route("/")
 class TimePoints(MethodView):
-
     @blp.response(200, sch.TimePointSchema(many=True))
     def get(self):
         """Get all timepoints"""

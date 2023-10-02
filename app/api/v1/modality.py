@@ -25,8 +25,7 @@ class Modality(MethodView):
     def get(self, id):
         """Get modality"""
 
-        res = record_exists(db, self.model, id).first()
-        return res
+        return mdl.Modality.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(ModalitySchema)
@@ -34,7 +33,9 @@ class Modality(MethodView):
     def patch(self, update_data, id):
         """Update modality"""
 
-        res = self._update(id, update_data)
+        res = mdl.Modality.query.get_or_404(id)
+        res.update(update_data)
+        db.session.commit()
 
         return res
 
@@ -43,32 +44,11 @@ class Modality(MethodView):
     def delete(self, id):
         """Delete modality"""
 
-        res = self._delete(id)
-
-    @staticmethod
-    def _create(data):
-        check_duplicate(db.session, mdl.Modality, name=data["name"])
-
-        modality = mdl.Modality(**data)
-        db.session.add(modality)
-        db.session.commit()
-        return modality
-
-    @staticmethod
-    def _update(id, data):
-        item = record_exists(db, mdl.Modality, id)
-
-        item.update(data)
-        db.session.commit()
-        return item.first()
-
-    @staticmethod
-    def _delete(id):
-        res = record_exists(db, mdl.Modality, id)
+        res = mdl.Modality.query.get_or_404(id)
 
         check_dependencies(mdl.Modality, value=id, field="id", remote="stacks")
 
-        db.session.delete(res.first())
+        db.session.delete(res)
         db.session.commit()
 
 
@@ -85,6 +65,9 @@ class Modalities(MethodView):
     @blp.response(201, ModalitySchema)
     def post(self, data):
         """Add a new modality"""
-        res = Modality._create(data)
+        check_duplicate(db.session, mdl.Modality, name=data['name'])
+        res = mdl.Modality(**data)
+        db.session.add(res)
+        db.session.commit()
 
         return res

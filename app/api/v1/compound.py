@@ -23,54 +23,26 @@ class Compound(MethodView):
     def get(self, id):
         """Get compound"""
 
-        res = record_exists(db, self.model, id).first()
-        return res
+        return mdl.Compound.query.get_or_404(id)
 
     @admin_required
     @blp.arguments(sch.CompoundSchema)
     @blp.response(200, sch.CompoundSchema)
-    def patch(self, update_data, id):
+    def patch(self, data, id):
         """Update compound"""
-        res = self._update(id, update_data)
+        cpd = mdl.Compound.query.get_or_404(id)
+        cpd.update(data)
 
-        return res
+        return cpd
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete compound"""
 
-        res = self._delete(id)
-
-    @staticmethod
-    def _create(data):
-        check_duplicate(db.session, mdl.Compound, name=data["name"])
-
-        cpd = mdl.Compound(**data)
-
-        db.session.add(cpd)
-        db.session.commit()
-        return cpd
-
-    @staticmethod
-    def _update(id, data):
-        record_exists(db, mdl.Compound, id)
-
-        cpd = mdl.Compound.query.filter_by(id=id)
-        cpd.update(data)
-        db.session.commit()
-        return cpd.first()
-
-    @staticmethod
-    def _can_delete(id):
-        record_exists(db, mdl.Compound, value=id, field="id")
+        cpd = mdl.Compound.query.get_or_404(id)
         check_dependencies(mdl.Compound, value=id, field="id", remote="sections")
 
-    @staticmethod
-    def _delete(id):
-        Compound._can_delete(id)
-
-        cpd = mdl.Compound.query.filter_by(id=id).first()
         db.session.delete(cpd)
         db.session.commit()
 
@@ -91,8 +63,10 @@ class Compounds(MethodView):
     def post(self, data):
         """Add a new compound"""
 
-        res = Compound._create(data)
+        check_duplicate(db.session, mdl.Compound, name=data["name"])
 
-        return res
+        cpd = mdl.Compound(**data)
 
-
+        db.session.add(cpd)
+        db.session.commit()
+        return cpd

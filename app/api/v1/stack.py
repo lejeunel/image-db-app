@@ -68,21 +68,79 @@ class Stack(MethodView):
     @admin_required
     @blp.arguments(StackSchema)
     @blp.response(200, StackSchema)
-    def patch(self, update_data, id):
+    def patch(self, data, id):
         """Update stack"""
-        res = Stack._update(id, update_data)
+        data_assoc, data_stack = split_dict(data)
 
-        return res
+        stack = mdl.Stack.query.get_or_404(id)
+
+        if data_assoc:
+            check_num_params(data_assoc)
+            # check that all modalities exist
+            for modality in data_assoc["modalities"]:
+                record_exists(db,mdl.Modality, value=modality, field="name")
+
+        if data_stack:
+            stack.update(data_stack)
+            db.session.commit()
+
+        if data_assoc:
+            # remove all associations
+            assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
+            for a in assoc:
+                db.session.delete(a)
+            db.session.commit()
+
+            # add new associations
+            for a in pivot_dict(data_assoc):
+                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modalities"]).first().id
+
+                assoc = mdl.StackModalityAssociation(
+                    stack_id=id, modality_id=modality_id, chan=a["channels"]
+                )
+                db.session.add(assoc)
+
+        db.session.commit()
+
+        return stack
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete stack"""
 
-        res = Stack._delete(id)
+        stack = mdl.Stack.query.get_or_404(id)
+        if len(stack.plates) > 0:
+            abort(
+                424,
+                message="Could not delete stack profile with id {}. Found parent plate.".format(
+                    id
+                ),
+            )
 
-    @staticmethod
-    def _create(data):
+        # delete associations
+        assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
+        for a in assoc:
+            db.session.delete(a)
+
+        db.session.delete(stack)
+        db.session.commit()
+
+
+@blp.route("/")
+class Stacks(MethodView):
+    @blp.response(200, StackSchema(many=True))
+    def get(self):
+        """Get all stacks"""
+
+        item = mdl.Stack.query.all()
+        return item
+
+    @admin_required
+    @blp.arguments(StackSchema)
+    @blp.response(201, StackSchema)
+    def post(self, data):
+        """Add a new stack"""
 
         data_assoc, data_stack = split_dict(data)
 
@@ -114,93 +172,3 @@ class Stack(MethodView):
         db.session.commit()
 
         return stack
-
-    @staticmethod
-    def _update(id, data):
-
-        data_assoc, data_stack = split_dict(data)
-
-        record_exists(db, mdl.Stack, id)
-
-        if data_assoc:
-            check_num_params(data_assoc)
-            # check that all modalities exist
-            for modality in data_assoc["modalities"]:
-                record_exists(db,mdl.Modality, value=modality, field="name")
-
-        q = db.session.query(mdl.Stack).filter_by(id=id)
-        if data_stack:
-            q.update(data_stack)
-            db.session.commit()
-
-        if data_assoc:
-            # remove all associations
-            assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
-            for a in assoc:
-                db.session.delete(a)
-            db.session.commit()
-
-            # add new associations
-            for a in pivot_dict(data_assoc):
-                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modalities"]).first().id
-
-                assoc = mdl.StackModalityAssociation(
-                    stack_id=id, modality_id=modality_id, chan=a["channels"]
-                )
-                db.session.add(assoc)
-
-        db.session.commit()
-
-        return q.first()
-
-    @staticmethod
-    def _check_dependencies(id):
-
-        # check if stack has dependencies
-        stack = db.session.query(mdl.Stack).filter_by(id=id).first()
-        if len(stack.plates) > 0:
-            abort(
-                424,
-                message="Could not delete stack profile with id {}. Found parent plate.".format(
-                    id
-                ),
-            )
-
-    @staticmethod
-    def _can_delete(id):
-        res = record_exists(db, mdl.Stack, id)
-        Stack._check_dependencies(id)
-        return res
-
-    @staticmethod
-    def _delete(id):
-
-        res = Stack._can_delete(id).first()
-
-        # delete associations
-        assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
-        for a in assoc:
-            db.session.delete(a)
-
-        db.session.delete(res)
-        db.session.commit()
-
-
-@blp.route("/")
-class Stacks(MethodView):
-    @blp.response(200, StackSchema(many=True))
-    def get(self):
-        """Get all stacks"""
-
-        item = mdl.Stack.query.all()
-        return item
-
-    @admin_required
-    @blp.arguments(StackSchema)
-    @blp.response(201, StackSchema)
-    def post(self, data):
-        """Add a new stack"""
-
-        res = Stack._create(data)
-
-        return res

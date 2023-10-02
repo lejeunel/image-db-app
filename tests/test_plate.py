@@ -4,6 +4,12 @@ from urllib.parse import urlencode
 from app import models as mdl
 from app import db
 
+def test_bad_id(client):
+    id = client.get("plates/").json[0]["id"]
+    bad_id = str(id) + '0'
+    res = client.get(f'plates/{bad_id}')
+    assert res == 404
+
 def test_create_existing(client):
     res = client.post("plates/", json={'name': 'first plate'})
 

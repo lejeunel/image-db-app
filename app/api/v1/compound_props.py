@@ -1,4 +1,3 @@
-from app.utils import record_exists
 from flask.views import MethodView
 from flask_smorest import Blueprint
 
@@ -45,14 +44,13 @@ class CompoundProperty(MethodView):
     def get(self, id):
         """Get compound property"""
 
-        res = record_exists(db, self.model, id).first()
-        return res
+        return mdl.CompoundProperty.query.get_or_404(id)
 
     @admin_required
     @blp.response(204)
     def delete(self, id):
         """Delete compound property"""
-        res = record_exists(db, self.model, id).first()
+        res = mdl.CompoundProperty.query.get_or_404(id)
         db.session.delete(res)
 
     @admin_required
@@ -61,7 +59,7 @@ class CompoundProperty(MethodView):
     def patch(self, data, id):
         """Update compound property"""
 
-        prop = record_exists(db, mdl.CompoundProperty, id)
+        prop =  mdl.CompoundProperty.query.get_or_404(id)
         prop.update(data)
         db.session.commit()
-        return prop.first()
+        return prop

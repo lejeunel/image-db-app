@@ -32,8 +32,13 @@ Item.item_tag_assoc = db.relationship(
     "ItemTagAssociation",
     back_populates="item",
 )
-
 Item.tags = association_proxy("item_tag_assoc", "tag")
+
+Tag.item_tag_assoc = db.relationship(
+    "ItemTagAssociation",
+    back_populates="tag",
+)
+Tag.items = association_proxy('item_tag_assoc', 'item')
 
 TimePoint.plate = db.relationship(
     "Plate", back_populates="timepoints", foreign_keys=[TimePoint.plate_id]

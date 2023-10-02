@@ -2,9 +2,9 @@ import uuid
 
 from app.extensions import db, ma
 from sqlalchemy_utils.types.uuid import UUIDType
+from .mixins import UpdateMixin
 
-
-class Item(db.Model):
+class Item(db.Model, UpdateMixin):
     """
     Basic object that refers to a resource (file)
     """
@@ -21,16 +21,16 @@ class Item(db.Model):
 
 
 
-class Tag(db.Model):
+class Tag(db.Model, UpdateMixin):
     __tablename__ = "tag"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
-    name = db.Column(db.String(100))
+    name = db.Column(db.String(100), nullable=False)
     comment = db.Column(db.Text())
 
     def __repr__(self):
         return f"<Tag {self.name}>"
 
-class ItemTagAssociation(db.Model):
+class ItemTagAssociation(db.Model, UpdateMixin):
     """
     Association model between item and tag.
     """

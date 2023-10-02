@@ -20,7 +20,7 @@ def check_dependencies(model, value, field:str, remote:str):
 
 
 def check_duplicate(session, model, **kwargs):
-    """Abort if DB contains a specified element
+    """Abort if DB contains a specified element.
 
     Parameters
     ----------

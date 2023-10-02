@@ -2,9 +2,9 @@ import uuid
 
 from app.extensions import db
 from sqlalchemy_utils.types.uuid import UUIDType
+from .mixins import UpdateMixin
 
-
-class Modality(db.Model):
+class Modality(db.Model, UpdateMixin):
     __tablename__ = "modality"
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     name = db.Column(db.String(100))

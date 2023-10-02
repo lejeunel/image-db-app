@@ -10,8 +10,8 @@ from urllib.parse import urlencode
 )
 def test_create_bad_inputs(client, uri, expected_status):
     plate_id = client.get('plates/').json[0]['id']
-    data = {"plate_id": plate_id, 'uri': uri}
-    res = client.post("timepoints/", json=data)
+    data = {'uri': uri}
+    res = client.post(f"plates/{plate_id}/timepoints", json=data)
     assert res == expected_status
 
 
@@ -21,9 +21,9 @@ def test_create_good_inputs(client):
     assert res == 201
     plate_id = res.json['id']
 
-    data = {'plate_id': plate_id, 'uri': "scheme://project/exp3/tp1/"}
-    res = client.post("timepoints/", json=data)
-    params = urlencode({'plate_id': id})
+    data = {'uri': "scheme://project/exp3/tp1/"}
+    res = client.post(f"plates/{plate_id}/timepoints", json=data)
+    params = urlencode({'plate_id': plate_id})
     res = client.get("items/?{}".format(params))
     assert res  == 200
 
