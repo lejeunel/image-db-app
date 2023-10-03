@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
-from app import ma
-from marshmallow import post_dump
+from app import ma, db
+from marshmallow import post_dump, pre_dump, pre_load, post_load
 from ..models.stack import Stack
+from ..models.modality import Modality
+from app.utils import record_exists
 
+class StackAssoc(ma.Schema):
+    modality_name = ma.String()
+    channel = ma.Int()
 
-class StackSchema(ma.SQLAlchemyAutoSchema):
+class StackSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Stack
-        additional = ('modalities', 'channels')
+
+    id = ma.auto_field()
+    name = ma.auto_field()
+    comment = ma.auto_field()
+    config = ma.List(ma.Nested(StackAssoc))
 
     _links = ma.Hyperlinks(
         {
@@ -15,8 +24,10 @@ class StackSchema(ma.SQLAlchemyAutoSchema):
             "collection": ma.URLFor("Stack.Stacks"),
         })
 
+
     @post_dump()
-    def modalities_channels(self, data, **kwargs):
-        data['modalities'] = [m.name for m in data['modalities']]
-        data['channels'] = list(data['channels'])
+    def write_assoc_config(self, data, **kwargs):
+        stack = Stack.query.get(data['id'])
+        data['config'] = [{'modality_name': m.name, 'channel': c}
+                          for m,c in zip(stack.modalities, stack.channels)]
         return data

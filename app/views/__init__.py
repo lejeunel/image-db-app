@@ -75,6 +75,8 @@ class GenericDetailedView(View):
         items_paginate, items = make_item_pagination(items, page, self.items_per_page)
 
         items = self.remove_sub_ids(items)
+        items = [{k:v for k,v in item.items() if k not in self.exclude_fields}
+                 for item in items]
 
         obj = db.session.get(self.model, id)
         data = self.schema().dump(obj)

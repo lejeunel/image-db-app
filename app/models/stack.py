@@ -11,6 +11,7 @@ class Stack(db.Model, UpdateMixin):
     """
 
     __tablename__ = "stack"
+
     id = db.Column(UUIDType, primary_key=True, default=uuid.uuid4, index=True)
     name = db.Column(db.String(100))
     comment = db.Column(db.Text())

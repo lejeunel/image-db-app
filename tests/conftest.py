@@ -7,7 +7,9 @@ from flask import Flask, testing
 
 class TestClient(testing.FlaskClient):
     def open(self, *args, **kwargs):
-        args = ("/api/v1/" + args[0],)
+        to_append = '/api/v1/'
+        if to_append not in args[0]:
+            args = ("/api/v1/" + args[0],)
         # return super().open(*args, page_size=10e5, max_page_size=10e5, **kwargs)
         return super().open(*args, **kwargs)
 

@@ -4,28 +4,25 @@ import json
 new = {
     "name": "stack_1",
     "comment": "",
-    "modalities": ["modality_0", "modality_1", "modality_2"],
-    "channels": [1, 2, 3],
+    "config": [{'modality_name': 'modality_0', 'channel': 1},
+               {'modality_name': 'modality_1', 'channel': 2},
+              {'modality_name': 'modality_2', 'channel': 3} ]
 }
 
 
 def test_association_update(client):
-    res = client.post("stacks/", json=new)
-    all = client.get("stacks/")
-    item = json.loads([s for s in all.response][0])[0]
+    stack = client.get("stacks/").json[0]
+    stack_id = stack['id']
 
-    update_assoc = dict(new)
-
-    update_assoc["modalities"] = ["BrightField", "WGA"]
-    update_assoc["chan"] = [2, 4]
-    res = client.patch(
-        "stacks/{}".format(item["id"]),
-        json={"name": "updated_name"},
+    new_assoc = {'modality_name': 'modality_0', 'channel': 4}
+    client.patch(
+        "stacks/{}".format(stack_id),
+        json={'config': new_assoc},
     )
-    assert res == 200
+    assert new_assoc in client.get(f'stacks/{stack_id}').json
 
 
-def test_delete_used(client):
+def test_delete_used_should_fail(client):
     item = client.get("stacks/").json[0]
     res = client.delete("stacks/{}".format(item["id"]))
     assert res == 424
@@ -49,18 +46,6 @@ def test_update(client):
     assert res == 200
     assert res.json["name"] == "updated_name"
 
-def test_add_channel(client):
-    res = client.post("stacks/", json=new)
-
-    item = client.get("stacks/").json[0]
-
-    res = client.patch(
-        "stacks/{}".format(item["id"]),
-        json={"modalities": ["modality_0", "modality_1", "modality_2", "modality_3"],
-              "channels": [1, 2, 3, 4]}
-    )
-    assert res == 200
-
 
 def test_create(client):
 
@@ -68,7 +53,7 @@ def test_create(client):
     assert res == 201
 
 
-def test_create_duplicate(client):
+def test_create_duplicate_name_should_fail(client):
 
     dup = dict(new)
     dup["name"] = "stack_0"

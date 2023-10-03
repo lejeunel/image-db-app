@@ -13,7 +13,7 @@ blp = Blueprint(
     "Stack",
     "Stack",
     url_prefix="/api/v1/stacks",
-    description="Ordered set of channels with matching rules",
+    description="Multiplexing profiles. Defines image modality to channel associations.",
 )
 
 
@@ -32,23 +32,6 @@ def split_dict(data):
         data.pop(k)
 
     return out, data
-
-
-def pivot_dict(data):
-    """
-    pivot association data to list of dicts
-    """
-    return [dict(zip(data, col)) for col in zip(*data.values())]
-
-
-def check_num_params(data):
-    """
-    check that property values (regexp) and destinations (modalities)
-    are of same length
-    """
-    n_elems = [len(v) for v in data.values()]
-    if len(set(n_elems)) > 1:
-        abort(424, message="Number of association parameter must match.")
 
 
 
@@ -73,18 +56,17 @@ class Stack(MethodView):
         data_assoc, data_stack = split_dict(data)
 
         stack = mdl.Stack.query.get_or_404(id)
-
-        if data_assoc:
-            check_num_params(data_assoc)
-            # check that all modalities exist
-            for modality in data_assoc["modalities"]:
-                record_exists(db,mdl.Modality, value=modality, field="name")
-
         if data_stack:
             stack.update(data_stack)
             db.session.commit()
 
         if data_assoc:
+            data_assoc = data_assoc['config']
+            # check that all modalities exist
+            for a in data_assoc:
+                record_exists(db,mdl.Modality, value=a['modality_name'], field="name")
+
+
             # remove all associations
             assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
             for a in assoc:
@@ -92,11 +74,11 @@ class Stack(MethodView):
             db.session.commit()
 
             # add new associations
-            for a in pivot_dict(data_assoc):
-                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modalities"]).first().id
+            for a in data_assoc:
+                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modality_name"]).first().id
 
                 assoc = mdl.StackModalityAssociation(
-                    stack_id=id, modality_id=modality_id, chan=a["channels"]
+                    stack_id=id, modality_id=modality_id, chan=a["channel"]
                 )
                 db.session.add(assoc)
 
@@ -144,31 +126,33 @@ class Stacks(MethodView):
 
         data_assoc, data_stack = split_dict(data)
 
-        check_num_params(data_assoc)
         check_duplicate(db.session, mdl.Stack, name=data["name"])
 
-        # check that all modalities exist
-        for m in data_assoc["modalities"]:
-            record_exists(db, mdl.Modality, value=m, field="name")
-        #
         # create stack record
         stack = mdl.Stack(**data_stack)
         db.session.add(stack)
         db.session.commit()
 
-        # create associations
-        assoc = []
-        for r in pivot_dict(data_assoc):
-            data = {
-                "stack_id": stack.id,
-                "modality_id": db.session.query(mdl.Modality).filter_by(name=r["modalities"])
-                .first()
-                .id,
-                "chan": r["channels"],
-            }
-            assoc.append(mdl.StackModalityAssociation(**data))
+        if data_assoc:
+            data_assoc = data_assoc['config']
+            # check that all modalities exist
+            for d in data_assoc:
+                record_exists(db, mdl.Modality, value=d['modality_name'], field="name")
 
-        db.session.add_all(assoc)
-        db.session.commit()
+
+            # create associations
+            assoc = []
+            for d in data_assoc:
+                data = {
+                    "stack_id": stack.id,
+                    "modality_id": db.session.query(mdl.Modality).filter_by(name=d["modality_name"])
+                    .first()
+                    .id,
+                    "chan": d["channel"],
+                }
+                assoc.append(mdl.StackModalityAssociation(**data))
+
+            db.session.add_all(assoc)
+            db.session.commit()
 
         return stack

@@ -48,7 +48,7 @@ def make_section_summary(section):
     )
     res_["compound"] = make_link_compound(section.compound)
     res_["compound_concentration"] = section.compound_concentration
-    res_["stack"] = make_link_stack(section.stack)
+    # res_["stack"] = make_link_stack(section.stack)
     res_["cell"] = make_link_cell(section.cell)
 
     return res_

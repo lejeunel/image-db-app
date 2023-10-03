@@ -45,3 +45,18 @@ def test_delete(client):
     items = client.get("items/").json
 
     assert len(plates) == len(items) == len(timepoints) == 0
+
+def test_get_timepoints(client):
+    res = client.get('plates/')
+    res = client.get(res.json[0]['_links']['timepoints'])
+    assert res == 200
+
+def test_get_sections(client):
+    res = client.get('plates/')
+    res = client.get(res.json[0]['_links']['sections'])
+    assert res == 200
+
+def test_get_stack(client):
+    res = client.get('plates/')
+    res = client.get(res.json[0]['_links']['stack'])
+    assert res == 200

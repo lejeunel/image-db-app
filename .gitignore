@@ -8,4 +8,5 @@ tmp/
 build
 htmlcov
 *.db
-.env
+/.env.prod
+/.env
