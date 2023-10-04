@@ -15,6 +15,10 @@ from ...exceptions import MyException
 
 blp = Blueprint("Plate", "Plate", url_prefix="/api/v1/plates", description="Main collection. Contains sub-resources Section, and TimePoint")
 
+@blp.errorhandler(MyException)
+def parsing_exception(e):
+    return jsonify(e.to_dict()), e.status_code
+
 @blp.route("/<uuid:id>/timepoints")
 class TimePointsOfPlate(MethodView):
     @blp.response(200, sch.TimePointSchema(many=True))

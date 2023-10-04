@@ -53,6 +53,7 @@ class Stack(MethodView):
     @blp.response(200, StackSchema)
     def patch(self, data, id):
         """Update stack"""
+
         data_assoc, data_stack = split_dict(data)
 
         stack = mdl.Stack.query.get_or_404(id)

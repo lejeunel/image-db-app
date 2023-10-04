@@ -17,9 +17,9 @@ def test_association_update(client):
     new_assoc = {'modality_name': 'modality_0', 'channel': 4}
     client.patch(
         "stacks/{}".format(stack_id),
-        json={'config': new_assoc},
+        json={'config': [new_assoc]},
     )
-    assert new_assoc in client.get(f'stacks/{stack_id}').json
+    assert new_assoc in client.get(f'stacks/{stack_id}').json['config']
 
 
 def test_delete_used_should_fail(client):
