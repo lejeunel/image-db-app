@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 
 new = {
     "name": "stack_1",
@@ -19,7 +18,8 @@ def test_association_update(client):
         "stacks/{}".format(stack_id),
         json={'config': [new_assoc]},
     )
-    assert new_assoc in client.get(f'stacks/{stack_id}').json['config']
+    config = client.get(f'stacks/{stack_id}').json['config']
+    assert config == [new_assoc]
 
 
 def test_delete_used_should_fail(client):

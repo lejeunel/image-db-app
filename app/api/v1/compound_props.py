@@ -29,6 +29,9 @@ class CompoundProperties(MethodView):
     def post(self, data):
         """Add a new compound property"""
 
+        if 'parent_id' in data:
+            mdl.CompoundProperty.query.get_or_404(data['parent_id'])
+
         prop = mdl.CompoundProperty(**data)
         db.session.add(prop)
         db.session.commit()

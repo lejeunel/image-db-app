@@ -5,6 +5,16 @@ from flask import render_template, request
 from flask.views import View
 
 
+def infer_columns(data: list[dict]):
+    """
+    infer from a set of records the "fields", i.e.
+    the set of dictionary keys of records without missing values
+    """
+
+    data_ = sorted(data, key=lambda d: len(d))
+    return data_[-1].keys()
+
+
 def make_item_pagination(items, page, items_per_page):
     from app.schemas.item import ItemSchema
 
@@ -34,7 +44,7 @@ class GenericDetailedView(View):
         self.schema = schema
         self.items_per_page = items_per_page
         self.template = "detail/generic.html"
-        self.exclude_fields = ['_links']
+        self.exclude_fields = ["_links"]
 
     def infer_name(self, data):
         if "name" in data:
@@ -43,7 +53,7 @@ class GenericDetailedView(View):
 
     def make_summary_table(self, obj):
         data = self.schema().dump(obj)
-        data = {k:v for k,v in data.items() if k not in self.exclude_fields}
+        data = {k: v for k, v in data.items() if k not in self.exclude_fields}
         table = json2table.convert(
             data,
             build_direction="LEFT_TO_RIGHT",
@@ -75,8 +85,10 @@ class GenericDetailedView(View):
         items_paginate, items = make_item_pagination(items, page, self.items_per_page)
 
         items = self.remove_sub_ids(items)
-        items = [{k:v for k,v in item.items() if k not in self.exclude_fields}
-                 for item in items]
+        items = [
+            {k: v for k, v in item.items() if k not in self.exclude_fields}
+            for item in items
+        ]
 
         obj = db.session.get(self.model, id)
         data = self.schema().dump(obj)
@@ -107,19 +119,9 @@ class ListView(View):
         self.schema = schema
         self.name = model.__name__
         self.template = "overview/generic.html"
-        self.exclude_fields = ["timepoints", 'property_id', '_links']
+        self.exclude_fields = ["timepoints", "property_id", "_links"]
 
-    @staticmethod
-    def get_columns(data: list[dict]):
-        """
-        infer from a set of records the "fields", i.e.
-        the set of dictionary keys of records without missing values
-        """
-
-        data_ = sorted(data, key=lambda d: len(d))
-        return data_[-1].keys()
-
-    def dispatch_request(self):
+    def make_paginated_data(self):
         if "page" in request.args.keys():
             page = int(request.args["page"])
         else:
@@ -129,8 +131,17 @@ class ListView(View):
         )
 
         data = self.schema(many=True).dump(paginate.items)
-        columns = self.get_columns(data)
+        return data, paginate
+
+    def make_columns(self, data):
+        columns = infer_columns(data)
         columns = [c for c in columns if c not in self.exclude_fields]
+        return columns
+
+    def dispatch_request(self):
+        data, paginate = self.make_paginated_data()
+
+        columns = self.make_columns(data)
 
         return render_template(
             self.template,
@@ -141,18 +152,19 @@ class ListView(View):
             fullname=self.name,
         )
 
+
 def register_views(app, reader=None):
     from .index import bp as main_bp
-
 
     with app.app_context():
         from .remote_item import RemoteItemView
 
         from .. import models as mdl
         from .. import schemas as sch
-        from .import GenericDetailedView, ListView
+        from . import GenericDetailedView, ListView
         from .plate import DetailedPlateView
         from .stack import StackView
+        from .compound import CompoundView
 
         app.register_blueprint(main_bp, url_prefix="/")
 
@@ -202,11 +214,10 @@ def register_views(app, reader=None):
 
         # Add basic elements views
         for obj, schema in zip(
-            [mdl.Modality, mdl.Cell, mdl.Compound, mdl.Plate, mdl.Stack, mdl.Tag],
+            [mdl.Modality, mdl.Cell, mdl.Plate, mdl.Stack, mdl.Tag],
             [
                 sch.ModalitySchema,
                 sch.CellSchema,
-                sch.CompoundSchema,
                 sch.PlateSchema,
                 sch.StackSchema,
                 sch.TagSchema,
@@ -224,5 +235,15 @@ def register_views(app, reader=None):
             "/item/<uuid:id>",
             view_func=RemoteItemView.as_view(
                 "item", reader, app.config["VIEWS_ITEMS_PER_PAGE"]
+            ),
+        )
+
+        app.add_url_rule(
+            "/compound/list/",
+            view_func=CompoundView.as_view(
+                f"compound_list",
+                mdl.Compound,
+                sch.CompoundSchema,
+                app.config["VIEWS_ITEMS_PER_PAGE"],
             ),
         )

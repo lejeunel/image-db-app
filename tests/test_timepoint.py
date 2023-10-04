@@ -6,6 +6,7 @@ from urllib.parse import urlencode
     [
         ("scheme://project/exp1/tp1/", 424),
         ("badscheme://project/exp1/tp1/", 422),
+        ("scheme://project/exp1/tp1", 422),
     ],
 )
 def test_create_bad_inputs(client, uri, expected_status):
@@ -27,9 +28,11 @@ def test_create_good_inputs(client):
     res = client.get("items/?{}".format(params))
     assert res  == 200
 
-def test_delete(client):
+def test_delete_should_clear_items(client):
     id = client.get('timepoints/').json[0]['id']
     res = client.delete(f'timepoints/{id}')
     assert res == 204
 
     items = client.get('items/').json
+    items = [item for item in items if item['timepoint_id'] == id]
+    assert len(items) == 0

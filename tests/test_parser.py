@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from app.reader.base import BaseReader
 from app.exceptions import ParsingException
+from app.reader.base import BaseReader
+
 
 class FailingReader(BaseReader):
     """

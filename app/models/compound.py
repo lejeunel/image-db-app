@@ -9,10 +9,10 @@ from sqlalchemy_utils.types.uuid import UUIDType
 from .mixins import UpdateMixin
 
 
-class CompoundPropertyType(enum.Enum):
-    moa_group = "moa_group"
-    moa_subgroup = "moa_subgroup"
-    target = "target"
+class CompoundPropertyType(enum.IntEnum):
+    moa_group = 0
+    moa_subgroup = 1
+    target = 2
 
 
 class CompoundProperty(db.Model, BaseNestedSets):

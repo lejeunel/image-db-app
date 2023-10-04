@@ -33,6 +33,32 @@ def split_dict(data):
 
     return out, data
 
+def reset_associations(stack_id, config):
+
+    stack = mdl.Stack.query.get(stack_id)
+    # check that all modalities exist
+    for d in config:
+        record_exists(db, mdl.Modality, value=d['modality_name'], field="name")
+
+    # delete existing associations
+    assocs = mdl.StackModalityAssociation.query.filter_by(stack_id = stack_id)
+    assocs.delete()
+    db.session.commit()
+
+    # create associations
+    assoc = []
+    for d in config:
+        data = {
+            "stack_id": stack.id,
+            "modality_id": mdl.Modality.query.filter_by(name=d["modality_name"])
+            .first()
+            .id,
+            "chan": d["channel"],
+        }
+        assoc.append(mdl.StackModalityAssociation(**data))
+
+    db.session.add_all(assoc)
+    db.session.commit()
 
 
 @blp.route("/<uuid:id>")
@@ -62,28 +88,7 @@ class Stack(MethodView):
             db.session.commit()
 
         if data_assoc:
-            data_assoc = data_assoc['config']
-            # check that all modalities exist
-            for a in data_assoc:
-                record_exists(db,mdl.Modality, value=a['modality_name'], field="name")
-
-
-            # remove all associations
-            assoc = db.session.query(mdl.StackModalityAssociation).filter_by(stack_id=id).all()
-            for a in assoc:
-                db.session.delete(a)
-            db.session.commit()
-
-            # add new associations
-            for a in data_assoc:
-                modality_id = db.session.query(mdl.Modality).filter_by(name=a["modality_name"]).first().id
-
-                assoc = mdl.StackModalityAssociation(
-                    stack_id=id, modality_id=modality_id, chan=a["channel"]
-                )
-                db.session.add(assoc)
-
-        db.session.commit()
+            reset_associations(id, data_assoc['config'])
 
         return stack
 
@@ -135,25 +140,6 @@ class Stacks(MethodView):
         db.session.commit()
 
         if data_assoc:
-            data_assoc = data_assoc['config']
-            # check that all modalities exist
-            for d in data_assoc:
-                record_exists(db, mdl.Modality, value=d['modality_name'], field="name")
-
-
-            # create associations
-            assoc = []
-            for d in data_assoc:
-                data = {
-                    "stack_id": stack.id,
-                    "modality_id": db.session.query(mdl.Modality).filter_by(name=d["modality_name"])
-                    .first()
-                    .id,
-                    "chan": d["channel"],
-                }
-                assoc.append(mdl.StackModalityAssociation(**data))
-
-            db.session.add_all(assoc)
-            db.session.commit()
+            reset_associations(stack.id, data_assoc['config'])
 
         return stack

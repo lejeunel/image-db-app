@@ -31,20 +31,32 @@ def test_update(client):
     assert res.json["name"] == "new name"
 
 
-def test_delete(client):
+def test_delete_should_also_delete_subresources(client):
     plate_id = client.get("plates/").json[0]["id"]
-    sections = client.get(f'plates/{plate_id}/sections').json
 
     client.delete(f"plates/{plate_id}")
 
-    for s in sections:
-        assert client.get(f"sections/{s['id']}") == 404
-
     plates = client.get("plates/").json
     timepoints = client.get("timepoints/").json
+    sections = client.get(f'sections/').json
     items = client.get("items/").json
 
-    assert len(plates) == len(items) == len(timepoints) == 0
+    assert len(plates) == len(items) == len(timepoints) == len(sections) == 0
+
+def test_delete_should_conserve_stacks_tags_compounds(client):
+    plate_id = client.get("plates/").json[0]["id"]
+
+    client.delete(f"plates/{plate_id}")
+
+    stacks = client.get("stacks/").json
+    tags = client.get("tags/").json
+    compounds = client.get("compounds/").json
+    props = client.get("compound-properties/").json
+
+    assert len(stacks) > 0
+    assert len(tags) > 0
+    assert len(compounds) > 0
+    assert len(props) > 0
 
 def test_get_timepoints(client):
     res = client.get('plates/')

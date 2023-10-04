@@ -1,0 +1,25 @@
+{% extends "overview/generic.html" %}
+
+{% block head %}
+    {{ super() }}
+<script src=" https://cdn.jsdelivr.net/npm/json-formatter-js@2.3.4/dist/json-formatter.umd.min.js "></script>
+
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+    <h1> Compound Properties</h1>
+
+    <script>
+        const myJSON = {{ json_compound_properties | safe }};
+
+        const formatter = new JSONFormatter(myJSON, Infinity);
+        const menu = document.querySelector('#content');
+
+        menu.appendChild(formatter.render());
+    </script>
+
+
+
+{% endblock %}

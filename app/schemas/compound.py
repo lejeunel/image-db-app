@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from app import db, ma
-from marshmallow import post_dump
+from marshmallow import post_dump, validates_schema, ValidationError
+from app.models.compound import CompoundPropertyType
 
 from ..models.utils import _concat_properties
 from .. import models as mdl
@@ -37,6 +38,7 @@ class CompoundPropertySchema(ma.SQLAlchemySchema):
     id = ma.auto_field()
     type = ma.Enum(mdl.CompoundPropertyType)
     value = ma.auto_field()
+    parent_id = ma.auto_field()
 
     _links = ma.Hyperlinks(
         {
@@ -44,3 +46,14 @@ class CompoundPropertySchema(ma.SQLAlchemySchema):
             "collection": ma.URLFor("CompoundProperty.CompoundProperties"),
         }
     )
+
+    @validates_schema
+    def validate_root_node_type(self, data, **kwargs):
+        """
+        Checks that a parent_id must be given when type is different
+        than "root" type (level 0)
+        """
+
+        root_type = CompoundPropertyType(0)
+        if (data['type'] != root_type) and ('parent_id' not in data):
+            raise ValidationError(f"For type different than {root_type.name}, provide parent_id!")

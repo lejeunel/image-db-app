@@ -58,18 +58,43 @@ def test_get_compound_properties(client):
     res = client.get("compound-properties/")
     assert res == 200
 
-def test_create_compound_properties_wrong_type(client):
+
+def test_create_property_wrong_type(client):
     res = client.post(
-        "compound-properties/", json={"type": "wrong_type", "value": "the value"}
+        "compound-properties/",
+        json={"type": "wrong_type", "value": "the value", "parent_id": 1},
     )
     assert res == 422
 
-def test_create_compound_properties_and_assign(client):
+
+def test_create_property_root_wrong_type(client):
+    res = client.post(
+        "compound-properties/", json={"type": "target", "value": "atarget"}
+    )
+    assert res == 422
+
+def test_create_property_root_good_type(client):
+    res = client.post(
+        "compound-properties/", json={"type": "moa_group", "value": "whatever"}
+    )
+    assert res == 201
+
+def test_create_property_and_assign(client):
     prop = client.post(
-        "compound-properties/", json={"type": "target", "value": "a new target"}
+        "compound-properties/", json={"type": "target", "value": "atarget",
+                                      'parent_id': 1}
     )
     assert prop == 201
 
-    compound_id = client.get('compounds/').json[0]['id']
-    res = client.patch(f"compounds/{compound_id}", json={'property_id': prop.json['id']})
-    assert res.json['target'] == 'a new target'
+    compound_id = client.get("compounds/").json[0]["id"]
+    res = client.patch(
+        f"compounds/{compound_id}", json={"property_id": prop.json["id"]}
+    )
+    assert res.json["target"] == "atarget"
+
+def test_create_property_non_existing_parent(client):
+    prop = client.post(
+        "compound-properties/", json={"type": "target", "value": "atarget",
+                                      'parent_id': 999}
+    )
+    assert prop == 404

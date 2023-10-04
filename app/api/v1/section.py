@@ -13,10 +13,49 @@ from .utils import admin_required
 blp = Blueprint(
     "Section",
     "Section",
-    url_prefix="/api/v1",
+    url_prefix="/api/v1/sections",
     description="Spatially contiguous subset of wells in a plate",
 )
 
+def _check_range(plate_id, a):
+    """
+    check that requested range contained in a matches available range of plate with ID timepoint_id
+
+    a: dicts that contain keys row_start, row_end, col_start, col_end
+    """
+
+    # get row and col range of plate
+    plate = db.session.query(mdl.Plate).filter_by(id=a["plate_id"]).first()
+    items = plate.items
+    rows = [im.row for im in items]
+    cols = [im.col for im in items]
+    row_range = range(ord(min(rows)), ord(max(rows)))
+    col_range = range(min(cols), max(cols))
+
+    # compare with requested range
+    if not range_subset(
+        range(ord(a["row_start"]), ord(a["row_end"])), row_range
+    ) and range_subset(range(a["col_start"], a["col_end"]), col_range):
+        abort(
+            409,
+            message="Requested section is out of bounds for plate with id {} within rows: {}, cols: {}.".format(
+                plate_id,
+                (chr(row_range.start), chr(row_range.stop)),
+                (col_range.start, col_range.stop),
+            ),
+        )
+
+def _check_overlap(a, b):
+    """
+    check if new section overlaps existing sections
+
+    a, b: dicts that contain keys row_start, row_end, col_start, col_end
+    """
+    section_coords = make_grid(**a)
+    new_section_coords = make_grid(**b)
+
+    if set(section_coords) & set(new_section_coords):
+        abort(409, message="Requested section overlaps with existing section.")
 
 def range_subset(range1, range2):
     """Whether range1 is a subset of range2."""
@@ -40,14 +79,14 @@ def create_section(data):
     record_exists(db, mdl.Cell, value=data["cell_id"], field="id")
     record_exists(db, mdl.Compound, value=data["compound_id"], field="id")
 
-    Section._check_range(data["plate_id"], data)
+    _check_range(data["plate_id"], data)
 
     # check for overlap with existing sections of same plate
     existing_sections = (
         db.session.query(mdl.Plate).filter_by(id=data["plate_id"]).first().sections
     )
     for s in existing_sections:
-        Section._check_overlap(s.__dict__, data)
+        _check_overlap(s.__dict__, data)
 
     section = mdl.Section(**data)
     db.session.add(section)
@@ -92,7 +131,7 @@ def update_section(id, data):
     return elem
 
 
-@blp.route("/sections/<uuid:id>")
+@blp.route("/<uuid:id>")
 class Section(MethodView):
     @blp.response(200, sch.SectionSchema)
     def get(self, id):
@@ -116,44 +155,11 @@ class Section(MethodView):
 
         res = delete_section(id)
 
-    @staticmethod
-    def _check_range(plate_id, a):
-        """
-        check that requested range contained in a matches available range of plate with ID timepoint_id
 
-        a: dicts that contain keys row_start, row_end, col_start, col_end
-        """
+@blp.route("/")
+class Sections(MethodView):
+    @blp.response(200, sch.SectionSchema(many=True))
+    def get(self):
+        """Get all sections"""
 
-        # get row and col range of plate
-        plate = db.session.query(mdl.Plate).filter_by(id=a["plate_id"]).first()
-        items = plate.items
-        rows = [im.row for im in items]
-        cols = [im.col for im in items]
-        row_range = range(ord(min(rows)), ord(max(rows)))
-        col_range = range(min(cols), max(cols))
-
-        # compare with requested range
-        if not range_subset(
-            range(ord(a["row_start"]), ord(a["row_end"])), row_range
-        ) and range_subset(range(a["col_start"], a["col_end"]), col_range):
-            abort(
-                409,
-                message="Requested section is out of bounds for plate with id {} within rows: {}, cols: {}.".format(
-                    plate_id,
-                    (chr(row_range.start), chr(row_range.stop)),
-                    (col_range.start, col_range.stop),
-                ),
-            )
-
-    @staticmethod
-    def _check_overlap(a, b):
-        """
-        check if new section overlaps existing sections
-
-        a, b: dicts that contain keys row_start, row_end, col_start, col_end
-        """
-        section_coords = make_grid(**a)
-        new_section_coords = make_grid(**b)
-
-        if set(section_coords) & set(new_section_coords):
-            abort(409, message="Requested section overlaps with existing section.")
+        return mdl.Section.query.all()
